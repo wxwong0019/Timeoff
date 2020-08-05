@@ -4,7 +4,7 @@ from .models import Timeoff
 
 
 class TimeoffForm(forms.ModelForm):
-	title		= forms.CharField(label='dis title', widget=forms.TextInput(attrs={'placeholder' : "enter yo"}))
+	title		= forms.CharField(label='Your Title', widget=forms.TextInput(attrs={'placeholder' : "enter yo"}))
 	email 		=  forms.EmailField()
 	description = forms.CharField(
 		widget=forms.Textarea(
@@ -19,11 +19,11 @@ class TimeoffForm(forms.ModelForm):
 	class Meta:
 		model = Timeoff
 		fields = [
-			'title',
-			'name',
-			'description',
-			'date',
-			'email',
+			# 'title',
+			# 'name',
+			# 'description',
+			# 'date',
+			# 'email',
 		]
 	# def clean_title(self, *arg, **kwarg):
 	# 	title = self.cleaned_data.get("title")

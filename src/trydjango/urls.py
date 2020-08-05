@@ -22,12 +22,15 @@ from Timeoff.views import (
     timeoff_delete_view,
     timeoff_list_view,
 )
+from users import views as user_views
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('home/', homepage_view),
     path('about/', about_view),
     path('timeoff/', include('Timeoff.urls')),
-    path('blog/', include('blog.urls')),
+    path('register/', user_views.register, name='register'),
     path('api-auth/', include('rest_framework.urls'))
 
 
