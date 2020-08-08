@@ -126,7 +126,15 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+MEDIA_ROOT = os.path.join(BASE_DIR,"media")
+
+MEDIA_URL = '/media/'
+
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+LOGIN_REDIRECT_URL = 'timeoff:timeoff-create'
+
+LOGIN_URL = 'login'
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,

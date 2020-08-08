@@ -23,7 +23,9 @@ from Timeoff.views import (
     timeoff_list_view,
 )
 from users import views as user_views
-
+from django.contrib.auth import views as auth_views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,8 +33,23 @@ urlpatterns = [
     path('about/', about_view),
     path('timeoff/', include('Timeoff.urls')),
     path('register/', user_views.register, name='register'),
-    path('api-auth/', include('rest_framework.urls'))
+    path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(template_name='users/logout.html'), name='logout'),
+    path('profile/', user_views.profile, name='profile'),
+    path('teachingstaff/', user_views.teachingstaff, name='teachingstaff'),
+    path('nonteachingstaff/', user_views.nonteachingstaff, name='nonteachingstaff'),
+    path('apply/', user_views.apply, name='apply'),
+
 
 
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+
+
 

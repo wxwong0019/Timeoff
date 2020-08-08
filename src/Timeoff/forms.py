@@ -4,7 +4,7 @@ from .models import Timeoff
 
 
 class TimeoffForm(forms.ModelForm):
-	title		= forms.CharField(label='Your Title', widget=forms.TextInput(attrs={'placeholder' : "enter yo"}))
+	title		= forms.CharField(label='Your Title', widget=forms.TextInput(attrs={'placeholder' : "Enter Your Title"}))
 	email 		=  forms.EmailField()
 	description = forms.CharField(
 		widget=forms.Textarea(
