@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'page',
     'users',
     'crispy_forms',
+    'customstaff'
 ]
 
 MIDDLEWARE = [
@@ -109,6 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
+AUTH_USER_MODEL = 'customstaff.User'
 
 LANGUAGE_CODE = 'en-us'
 

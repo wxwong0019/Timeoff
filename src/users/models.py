@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import User
+from customstaff.models import User
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from PIL import Image
 from django.utils import timezone
 
@@ -24,31 +25,5 @@ class Profile(models.Model):
 
 
 
-class TeachingStaff(models.Model):
-	sickleave = models.DecimalField(max_digits = 3, decimal_places = 2)
-	officialleave = models.DecimalField(max_digits = 3, decimal_places = 2)
-	casualleave = models.DecimalField(max_digits = 3, decimal_places = 2)
-	user = models.ForeignKey(User, default=None, on_delete=models.CASCADE)
 
-class NonTeachingStaff(models.Model):
-	sickleave = models.DecimalField(max_digits = 3, decimal_places = 2)
-	officialleave = models.DecimalField(max_digits = 3, decimal_places = 2)
-	annualleave = models.DecimalField(max_digits = 3, decimal_places = 2)
-	user = models.ForeignKey(User, default=None, on_delete=models.CASCADE)
 
-class Apply(models.Model):
-	sickleave = 'SL'
-	officialleave = 'OL'
-	casualleave = 'CL'
-	annualleave = 'AL'
-
-	TIMEOFF_CHOICES = [
-		(sickleave, 'sick leave'),
-		(officialleave, 'official leave'),
-		(casualleave, 'casual leave'),
-		(annualleave, 'annual leave'),
-	]
-	timeofftype = models.CharField(max_length= 10,choices = TIMEOFF_CHOICES, default=sickleave)
-	startdate = models.DateTimeField(default=timezone.now())
-	enddate = models.DateTimeField(default=timezone.now())
-	user = models.ForeignKey(User, default=None, on_delete=models.CASCADE)

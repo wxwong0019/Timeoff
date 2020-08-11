@@ -1,20 +1,21 @@
 from django import forms
-from django.contrib.auth.forms import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Profile, TeachingStaff, NonTeachingStaff, Apply
+from .models import Profile
+from customstaff.models import User, TeachingStaffMore, NonTeachingStaffMore, TeachingStaff, NonTeachingStaff, LeaveApplication
 
 
-class UserRegisterForm(UserCreationForm):
-	email = forms.EmailField()
 
-	class Meta:
-		model = User
-		fields = [
-			'username',
-			'email',
-			'password1',
-			'password2',
-		]
+# class UserRegisterForm(UserCreationForm):
+# 	email = forms.EmailField()
+
+# 	class Meta:
+# 		model = User
+# 		fields = [
+# 			'username',
+# 			'email',
+# 			'password1',
+# 			'password2',
+# 		]
 		
 class UserUpdateForm(forms.ModelForm):
 	email = forms.EmailField()
@@ -35,20 +36,37 @@ class ProfileUpdateForm(forms.ModelForm):
 class TeachingStaffUpdateForm(forms.ModelForm):
 
 	class Meta:
-		model = TeachingStaff
-		fields = ['sickleave', 'officialleave', 'casualleave']
+		model = TeachingStaffMore
+		fields = ['sickleave', 'casualleave']
 
 class NonTeachingStaffUpdateForm(forms.ModelForm):
 
 	class Meta:
-		model = NonTeachingStaff
-		fields = ['sickleave', 'officialleave', 'annualleave']
+		model = NonTeachingStaffMore
+		fields = ['sickleave', 'annualleave']
 
 class ApplyForm(forms.ModelForm):
 	class Meta:
-		model = Apply
+		model = LeaveApplication
 		fields = [
 			'timeofftype',
 			'startdate',
-			'enddate'
+			'enddate',
+			'reason'
+		]
+
+class FirstValidate(forms.ModelForm):
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'firststatus',
+			'firstcomment'
+		]
+
+class FinalValidate(forms.ModelForm):
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'finalstatus',
+			'finalcomment'
 		]

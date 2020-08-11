@@ -4,27 +4,27 @@ from django.contrib.auth.decorators import login_required
 from .forms import(
 	TeachingStaffUpdateForm,
 	NonTeachingStaffUpdateForm,
-	UserRegisterForm,
+	# UserRegisterForm,
 	UserUpdateForm, 
 	ProfileUpdateForm,
 	ApplyForm,
 	) 
 # Create your views here.
-def register(request):
-	if request.method == 'POST':
-		form = UserRegisterForm(request.POST)
-		if form.is_valid():
-			form.save()
-			username = form.cleaned_data.get('username')
-			messages.success(request, f'account created for {username}! Start requesting your timeoff')
-			return redirect('login')
+# def register(request):
+# 	if request.method == 'POST':
+# 		form = UserRegisterForm(request.POST)
+# 		if form.is_valid():
+# 			form.save()
+# 			username = form.cleaned_data.get('username')
+# 			messages.success(request, f'account created for {username}! Start requesting your timeoff')
+# 			return redirect('login')
 
 
 
-	else:
-		form = UserRegisterForm()
+# 	else:
+# 		form = UserRegisterForm()
 
-	return render(request, 'users/register.html', {'form': form})
+# 	return render(request, 'users/register.html', {'form': form})
 
 @login_required
 def profile(request):
@@ -71,10 +71,8 @@ def nonteachingstaff(request):
 			form.save()
 			messages.success(request, f'Teacher timeoff applied')
 			return redirect('profile')
-
 	else:
 		form = NonTeachingStaffUpdateForm()
-
 	return render(request, 'users/nonteachingstaff.html', {'form': form})
 
 def apply(request):
