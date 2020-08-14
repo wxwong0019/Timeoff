@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,  get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import(
@@ -8,7 +8,9 @@ from .forms import(
 	UserUpdateForm, 
 	ProfileUpdateForm,
 	ApplyForm,
+	FirstValidate
 	) 
+from customstaff.models import LeaveApplication
 # Create your views here.
 # def register(request):
 # 	if request.method == 'POST':
@@ -29,10 +31,11 @@ from .forms import(
 @login_required
 def profile(request):
 	if request.method == 'POST':	
-		u_form = UserUpdateForm(request.POST,instance=request.user)
+		u_form = UserUpdateForm(request.POST,)
+								# instance=request.user)
 		p_form = ProfileUpdateForm(request.POST,
-								   request.FILES,	
-								   instance=request.user.profile)
+								   request.FILES,)	
+								   # instance=request.user.profile)
 		if u_form.is_valid() and p_form.is_valid():
 			u_form.save()
 			p_form.save()
@@ -49,20 +52,7 @@ def profile(request):
 		}
 	return render(request, 'users/profile.html', context)
 
-def teachingstaff(request):
-	if request.method == 'POST':
-		form = TeachingStaffUpdateForm(request.POST)
-		if form.is_valid():
-			form.save()
-			messages.success(request, f'Teacher timeoff applied')
-			return redirect('profile')
 
-
-
-	else:
-		form = TeachingStaffUpdateForm()
-
-	return render(request, 'users/teachingstaff.html', {'form': form})
 
 def nonteachingstaff(request):
 	if request.method == 'POST':
@@ -75,18 +65,73 @@ def nonteachingstaff(request):
 		form = NonTeachingStaffUpdateForm()
 	return render(request, 'users/nonteachingstaff.html', {'form': form})
 
-def apply(request):
+def teacherapply(request):
 	if request.method == 'POST':
 		form = ApplyForm(request.POST)
+		# start_date=request.POST['startdate']
+		# end_date =request.POST['enddate']
+
+		print(request.POST['startdate'])
 		if form.is_valid():
 			a_form = form.save(commit=False)
 			a_form.user = request.user
 			a_form.save()
+
 			messages.success(request, f'Teacher timeoff applied')
 
-			return redirect('apply')
+			return redirect('success')
 	else:
 		form = ApplyForm()
 		
 	return render(request, "users/apply.html", {'form': form})
 
+def success(req):
+	obj = LeaveApplication.objects.get(id=1)
+	context = {"object" : obj
+	}
+	return render(req,"users/success.html",context)
+
+def managerlistview(req):
+	queryset = LeaveApplication.objects.all() # list of objects
+	context = {
+		"objec_list" : queryset
+	}
+	return render(req, "users/managerlistview.html", context)
+
+def managerapprove(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+	if request.method == 'POST':	
+		u_form = FirstValidate(request.POST, instance=obj)
+		if u_form.is_valid():
+			u_form.save()
+			messages.success(request, f'DONE')
+			return redirect('success')
+	else:
+		u_form = FirstValidate(instance=obj)
+
+
+		context = {
+			'u_form':u_form,
+			'obj' : obj
+		}
+	# context = {
+	# 	"objec" : obj
+	# }
+	return render(request, "users/approve.html", context)
+
+# def managerapprove(request, myid):
+# 	if request.method == 'POST':	
+# 		u_form = FirstValidate(request.POST,instance=request.myid)
+# 		if u_form.is_valid():
+# 			u_form.save()
+# 			messages.success(request, f'Your Account Has Been Updated')
+# 			return redirect('profile')
+# 	else:
+# 		u_form = FirstValidate(instance=request.user)
+
+
+# 		context = {
+# 			'u_form':u_form,
+# 		}
+# 	return render(request, 'users/approve.html', context)

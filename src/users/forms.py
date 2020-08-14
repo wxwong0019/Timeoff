@@ -54,6 +54,14 @@ class ApplyForm(forms.ModelForm):
 			'enddate',
 			'reason'
 		]
+	# def clean_duration(self, *arg, **kwarg):
+	# 	start_date = self.cleaned_data["startdate"]
+	# 	end_date = self.cleaned_data["enddate"]
+	# 	duration = end_date - start_date
+	# 	# if not email.endswith("edu"):
+	# 	# 	raise forms.ValidationError("this is not email")
+	# 	# else:
+	# 	return duration
 
 class FirstValidate(forms.ModelForm):
 	class Meta:

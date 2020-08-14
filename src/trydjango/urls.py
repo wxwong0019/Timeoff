@@ -36,9 +36,10 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='users/logout.html'), name='logout'),
     path('profile/', user_views.profile, name='profile'),
-    path('teachingstaff/', user_views.teachingstaff, name='teachingstaff'),
-    path('nonteachingstaff/', user_views.nonteachingstaff, name='nonteachingstaff'),
-    path('apply/', user_views.apply, name='apply'),
+    path('teacherapply/', user_views.teacherapply, name='teacherapply'),
+    path('success/', user_views.success, name='success'),
+    path('managerlistview/', user_views.managerlistview, name='managerlistview'),
+    path('<int:myid>/managerapprove/', user_views.managerapprove, name='managerapprove'),
 
 
 

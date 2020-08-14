@@ -6,7 +6,7 @@
   <div class="collapse navbar-collapse" id="navbarNav">
 
     <ul class="navbar-nav">
-    {% if user.is_authenticated %}
+    {% if User.base_type == Types.TEACHINGSTAFF  %}
 	  <li class="nav-item">
 	    <a class="nav-link" href="{% url 'timeoff:timeoff-create' %}">Apply for TimeOff</a>
 	  </li>

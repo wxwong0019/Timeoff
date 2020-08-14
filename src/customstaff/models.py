@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+import datetime 
 
 class MyUserManager(BaseUserManager):
 	def create_user(self, email, username, password=None):
@@ -50,21 +51,21 @@ class User(AbstractBaseUser):
 		TEACHINGSTAFF = 'teachingstaff', 'teachingstaff'
 		NONTEACHINGSTAFF = 'nonteachingstaff', 'nonteachingstaff'
 
-	base_type = Types.TEACHINGSTAFF
+	base_type = Types.NONTEACHINGSTAFF
 	
-	type = models.CharField(_("Type"), max_length=50, choices=Types.choices, default=base_type)
+	type = models.CharField(_("Type"), max_length=50, choices=Types.choices)
 
 
 	def get_absolute_url(self):
 		return reverse("users:detail", kwargs={"username": self.username})
 
-	def save(self, *args, **kwargs):
-		if not self.id:
-			self.type = self.base_type
-		return super().save(*args, **kwargs)
+	# def save(self, *args, **kwargs):
+	# 	if not self.id:
+	# 		self.type = self.base_type
+	# 	return super().save(*args, **kwargs)
 		
 	def __str__(self):
-		return self.email
+		return self.username
 
 	def has_perm(self, perm, obj=None):
 		"Does the user have a specific permission?"
@@ -97,6 +98,10 @@ class TeachingStaff(User):
 
 	class Meta:
 		proxy = True
+	def save(self, *args, **kwargs):
+		if not self.pk:
+			self.type = self.base_type
+		return super().save(*args, **kwargs)
 
 class TeachingStaffMore(models.Model):
 	user = models.OneToOneField(TeachingStaff, on_delete=models.CASCADE)
@@ -111,6 +116,11 @@ class NonTeachingStaff(User):
 	
 	class Meta:
 		proxy = True
+
+	def save(self, *args, **kwargs):
+		if not self.pk:
+			self.type = self.base_type
+		return super().save(*args, **kwargs)
 
 class NonTeachingStaffMore(models.Model):
 	user = models.OneToOneField(NonTeachingStaff, on_delete=models.CASCADE)
@@ -145,13 +155,25 @@ class LeaveApplication(models.Model):
 	timeofftype = models.CharField(max_length= 10,choices = TIMEOFF_CHOICES, default=sickleave)
 	startdate = models.DateTimeField(default=timezone.now())
 	enddate = models.DateTimeField(default=timezone.now())
+	duration = models.DurationField(default = datetime.timedelta)
 	reason = models.CharField(max_length= 200, default = '')
 	firststatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
-	firstcomment = models.CharField(max_length= 200, default = '')
+	firstcomment = models.CharField(max_length= 200, blank=True)
 	finalstatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
-	finalcomment = models.CharField(max_length= 200, default = '')
-	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	finalcomment = models.CharField(max_length= 200, blank=True)
+	user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+	def __str__(self):
+		return self.user.username
 
+	def save(self):
+		start_date = self.startdate
+		end_date = self.enddate
+		self.duration = end_date - start_date
+		return super().save(self.duration)
+
+
+	def get_absolute_url(self):
+		return  reverse("managerapprove", kwargs={"myid" : self.id})  #f"/timeoff/{self.id}"
 
 
 		

@@ -134,7 +134,7 @@ MEDIA_URL = '/media/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-LOGIN_REDIRECT_URL = 'timeoff:timeoff-create'
+LOGIN_REDIRECT_URL = 'teacherapply'
 
 LOGIN_URL = 'login'
 
