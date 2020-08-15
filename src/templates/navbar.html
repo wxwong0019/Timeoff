@@ -8,14 +8,16 @@
     <ul class="navbar-nav">
     {% if User.base_type == Types.TEACHINGSTAFF  %}
 	  <li class="nav-item">
-	    <a class="nav-link" href="{% url 'timeoff:timeoff-create' %}">Apply for TimeOff</a>
+	    <a class="nav-link" href="{% url 'teacherapply' %}">Apply for Leave</a>
 	  </li>
 	  <li class="nav-item">
-	    <a class="nav-link" href="{% url 'profile' %}">Profile</a>
+	    <a class="nav-link" href="{% url 'profile' %}">Leave Record</a>
 	  </li>
+    <div class=".px-2" style="width: 200px;">
       <li class="nav-item">
         <a class="nav-link " href="{% url 'logout' %}">Logout</a>
       </li>
+    </div>
   	{% else %}
       <li class="nav-item">
         <a class="nav-link" href="{% url 'login' %}">Login <span class="sr-only">(current)</span></a>

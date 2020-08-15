@@ -46,6 +46,7 @@ class NonTeachingStaffUpdateForm(forms.ModelForm):
 		fields = ['sickleave', 'annualleave']
 
 class ApplyForm(forms.ModelForm):
+	# timeofftype = forms.CharField(label='What are you doing')
 	class Meta:
 		model = LeaveApplication
 		fields = [

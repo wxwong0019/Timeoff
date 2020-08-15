@@ -136,15 +136,15 @@ class LeaveApplication(models.Model):
 	annualleave = 'AL'
 
 	TIMEOFF_CHOICES = [
-		(sickleave, 'sick leave'),
-		(officialleave, 'official leave'),
-		(casualleave, 'casual leave'),
-		(annualleave, 'annual leave'),
+		(sickleave, 'Sick Leave'),
+		(officialleave, 'Official Leave'),
+		(casualleave, 'Casual Leave'),
+		(annualleave, 'Annual Leave'),
 	]
 
-	pending = 'pending'
-	approved = 'approved'
-	denied = 'denied'
+	pending = 'Pending'
+	approved = 'Approved'
+	denied = 'Denied'
 
 	STATUS_CHOICES = [
 		(pending, 'pending'),
@@ -152,7 +152,7 @@ class LeaveApplication(models.Model):
 		(denied, 'denied'),
 	]
 
-	timeofftype = models.CharField(max_length= 10,choices = TIMEOFF_CHOICES, default=sickleave)
+	timeofftype = models.CharField(_("Type of Leave"),max_length= 10,choices = TIMEOFF_CHOICES, default=sickleave)
 	startdate = models.DateTimeField(default=timezone.now())
 	enddate = models.DateTimeField(default=timezone.now())
 	duration = models.DurationField(default = datetime.timedelta)
@@ -161,7 +161,7 @@ class LeaveApplication(models.Model):
 	firstcomment = models.CharField(max_length= 200, blank=True)
 	finalstatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
 	finalcomment = models.CharField(max_length= 200, blank=True)
-	user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 	def __str__(self):
 		return self.user.username
 
