@@ -37,32 +37,70 @@ class MyUserManager(BaseUserManager):
 		user.save(using=self._db)
 		return user
 
+
+
 class User(AbstractBaseUser):
 	USERNAME_FIELD = 'email'
 	email = models.EmailField(verbose_name='email',max_length=255,unique=True)
 	username = models.CharField(max_length= 100, default = '',unique=True)
 	is_active = models.BooleanField(default=True)
 	is_admin = models.BooleanField(default=False)
+	# is_teacher = models.BooleanField('teacher status', default=False)
+	# is_nonteacher = models.BooleanField('Non teaching staff status', default=False)
+	# is_supervisor = models.BooleanField('Supervisor status', default=False)
+	# is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
+	# is_principal = models.BooleanField('Principal status', default=False)
 
 	REQUIRED_FIELDS = ['username']
 	objects = MyUserManager()
 
+
 	class Types(models.TextChoices):
 		TEACHINGSTAFF = 'teachingstaff', 'teachingstaff'
 		NONTEACHINGSTAFF = 'nonteachingstaff', 'nonteachingstaff'
-
+		SUPERVISOR = 'supervisor', 'supervisor'
+		VICEPRINCIPAL = 'viceprincipal', 'viceprincipal'
+		PRINCIPAL = 'principal', 'principal'
+	
 	base_type = Types.NONTEACHINGSTAFF
 	
-	type = models.CharField(_("Type"), max_length=50, choices=Types.choices)
+	type = models.CharField(_("Types"), max_length=50, choices=Types.choices)
 
+	# def save(self, *args, **kwargs):
+	# 		if self.type == User.Types.TEACHINGSTAFF:
+	# 			self.is_teacher = True
+	# 			self.is_nonteacher = False
+	# 			self.is_supervisor = False
+	# 			self.is_viceprincipal = False
+	# 			self.is_principal = False
+	# 		elif self.type == User.Types.NONTEACHINGSTAFF:
+	# 			self.is_teacher = False
+	# 			self.is_nonteacher = True
+	# 			self.is_supervisor = False
+	# 			self.is_viceprincipal = False
+	# 			self.is_principal = False
+	# 		elif self.type == User.Types.SUPERVISOR:
+	# 			self.is_teacher = False
+	# 			self.is_nonteacher = False
+	# 			self.is_supervisor = True
+	# 			self.is_viceprincipal = False
+	# 			self.is_principal = False
+	# 		elif self.type == User.Types.VICEPRINCIPAL:
+	# 			self.is_teacher = False
+	# 			self.is_nonteacher = False
+	# 			self.is_supervisor = False
+	# 			self.is_viceprincipal = True
+	# 			self.is_principal = False
+	# 		elif self.type == User.Types.PRINCIPAL:
+	# 			self.is_teacher = False
+	# 			self.is_nonteacher = False
+	# 			self.is_supervisor = False
+	# 			self.is_viceprincipal = False
+	# 			self.is_principal = True
+	# 		return super(User, self).save(*args, **kwargs)
 
 	def get_absolute_url(self):
 		return reverse("users:detail", kwargs={"username": self.username})
-
-	# def save(self, *args, **kwargs):
-	# 	if not self.id:
-	# 		self.type = self.base_type
-	# 	return super().save(*args, **kwargs)
 		
 	def __str__(self):
 		return self.username
@@ -91,6 +129,17 @@ class TeachingStaffManager(models.Manager):
 class NonTeachingStaffManager(models.Manager):
 	def get_queryset(self, *args, **kwargs):
 		return super().get_queryset(*args, **kwargs).filter(type = User.Types.NONTEACHINGSTAFF)
+class SupervisorManager(models.Manager):
+	def get_queryset(self, *args, **kwargs):
+		return super().get_queryset(*args, **kwargs).filter(type = User.Types.SUPERVISOR)
+
+class VicePrincipalManager(models.Manager):
+	def get_queryset(self, *args, **kwargs):
+		return super().get_queryset(*args, **kwargs).filter(type = User.Types.VICEPRINCIPAL)
+
+class PrincipalManager(models.Manager):
+	def get_queryset(self, *args, **kwargs):
+		return super().get_queryset(*args, **kwargs).filter(type = User.Types.PRINCIPAL)
 
 class TeachingStaff(User):
 	base_type = User.Types.TEACHINGSTAFF
@@ -98,17 +147,11 @@ class TeachingStaff(User):
 
 	class Meta:
 		proxy = True
+
 	def save(self, *args, **kwargs):
 		if not self.pk:
 			self.type = self.base_type
 		return super().save(*args, **kwargs)
-
-class TeachingStaffMore(models.Model):
-	user = models.OneToOneField(TeachingStaff, on_delete=models.CASCADE)
-	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
-	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
-	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0)
-	firstday = models.DateField(default=timezone.now())
 
 class NonTeachingStaff(User):
 	base_type = User.Types.NONTEACHINGSTAFF
@@ -122,24 +165,85 @@ class NonTeachingStaff(User):
 			self.type = self.base_type
 		return super().save(*args, **kwargs)
 
-class NonTeachingStaffMore(models.Model):
+class Supervisor(User):
+	base_type = User.Types.SUPERVISOR
+	objects = SupervisorManager()
+
+	class Meta:
+		proxy = True
+
+	def save(self, *args, **kwargs):
+		if not self.pk:
+			self.type = self.base_type
+		return super().save(*args, **kwargs)
+
+class TeachingStaffDetail(models.Model):
+	user = models.OneToOneField(TeachingStaff, on_delete=models.CASCADE)
+	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
+	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
+	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0)
+	firstday = models.DateField(default=timezone.now())
+
+	is_teacher = models.BooleanField('teacher status', default=True)
+	is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
+	is_principal = models.BooleanField('Principal status', default=False)
+
+
+class NonTeachingStaffDetail(models.Model):
 	user = models.OneToOneField(NonTeachingStaff, on_delete=models.CASCADE)
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0)
 	firstday = models.DateField(default=timezone.now())
 
+	is_nonteacher = models.BooleanField('Non teaching staff status', default=True)
+
+class SupervisorDetail(models.Model):
+	user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='SupervisorDetail')
+	overseeing = models.ManyToManyField(User, related_name='overseeing')
+	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
+	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
+	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0)
+	firstday = models.DateField(default=timezone.now())
+
+	is_supervisor = models.BooleanField('Supervisor status', default=True)
+
 class LeaveApplication(models.Model):
 	sickleave = 'SL'
 	officialleave = 'OL'
 	casualleave = 'CL'
 	annualleave = 'AL'
+	specialtuberculosisleave = 'TB'
+	maternalleave = 'ML'
+	paternityleave = 'PL'
+	studyleave = 'ST'
+	jurorsorwitnesses = 'JK'
+	leaveforspecialevents = 'LS'
+	overtime = 'OT'
+	others = 'O'
 
-	TIMEOFF_CHOICES = [
+	TEACHER_TIMEOFF_CHOICES = [
 		(sickleave, 'Sick Leave'),
 		(officialleave, 'Official Leave'),
 		(casualleave, 'Casual Leave'),
+		(specialtuberculosisleave, 'Special Tuberculosis Leave'),
+		(maternalleave, 'Maternal Leave'),
+		(paternityleave, 'Paternity Leave'),
+		(studyleave, 'Study Leave'),
+		(jurorsorwitnesses, 'Jurors or Witnesses'),
+		(leaveforspecialevents, 'Leave for Special Events'),
+		(others, 'Others'),
+	]
+	NONTEACHER_TIMEOFF_CHOICES = [
+		(sickleave, 'Sick Leave'),
+		(officialleave, 'Official Leave'),
 		(annualleave, 'Annual Leave'),
+		(overtime, 'Over Time'),		
+		(specialtuberculosisleave, 'Special Tuberculosis Leave'),
+		(maternalleave, 'Maternal Leave'),
+		(paternityleave, 'Paternity Leave'),
+		(jurorsorwitnesses, 'Jurors or Witnesses'),
+		(others, 'Others'),
 	]
 
 	pending = 'Pending'
@@ -152,7 +256,8 @@ class LeaveApplication(models.Model):
 		(denied, 'denied'),
 	]
 
-	timeofftype = models.CharField(_("Type of Leave"),max_length= 10,choices = TIMEOFF_CHOICES, default=sickleave)
+	teachertimeofftype = models.CharField(_("Teacher Type of Leave"),max_length= 10,choices = TEACHER_TIMEOFF_CHOICES, default=sickleave)
+	nonteachertimeofftype = models.CharField(_("Non Teacher Type of Leave"),max_length= 10,choices = NONTEACHER_TIMEOFF_CHOICES, default=sickleave)
 	startdate = models.DateTimeField(default=timezone.now())
 	enddate = models.DateTimeField(default=timezone.now())
 	duration = models.DurationField(default = datetime.timedelta)
@@ -165,11 +270,11 @@ class LeaveApplication(models.Model):
 	def __str__(self):
 		return self.user.username
 
-	def save(self):
+	def save(self, *args, **kwargs):
 		start_date = self.startdate
 		end_date = self.enddate
 		self.duration = end_date - start_date
-		return super().save(self.duration)
+		return super(LeaveApplication, self).save(*args, **kwargs)
 
 
 	def get_absolute_url(self):

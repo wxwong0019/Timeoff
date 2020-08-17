@@ -7,10 +7,11 @@ from .forms import(
 	# UserRegisterForm,
 	UserUpdateForm, 
 	ProfileUpdateForm,
-	ApplyForm,
+	TeacherApplyForm,
+	NonTeacherApplyForm,
 	FirstValidate
 	) 
-from customstaff.models import LeaveApplication
+from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication, SupervisorDetail
 # Create your views here.
 # def register(request):
 # 	if request.method == 'POST':
@@ -30,18 +31,18 @@ from customstaff.models import LeaveApplication
 
 @login_required
 def profile(request):
-	if request.method == 'POST':	
-		u_form = UserUpdateForm(request.POST,)
-								# instance=request.user)
-		p_form = ProfileUpdateForm(request.POST,
-								   request.FILES,)	
-								   # instance=request.user.profile)
-		if u_form.is_valid() and p_form.is_valid():
-			u_form.save()
-			p_form.save()
-			messages.success(request, f'Your Account Has Been Updated')
-			return redirect('profile')
-	else:
+	# if request.method == 'POST':	
+	# 	u_form = UserUpdateForm(request.POST,)
+	# 							# instance=request.user)
+	# 	p_form = ProfileUpdateForm(request.POST,
+	# 							   request.FILES,)	
+	# 							   # instance=request.user.profile)
+	# 	if u_form.is_valid() and p_form.is_valid():
+	# 		u_form.save()
+	# 		p_form.save()
+	# 		messages.success(request, f'Your Account Has Been Updated')
+	# 		return redirect('profile')
+	# else:
 		u_form = UserUpdateForm(instance=request.user)
 		p_form = ProfileUpdateForm(instance=request.user.profile)
 
@@ -50,24 +51,46 @@ def profile(request):
 			'u_form':u_form,
 			'p_form':p_form,
 		}
-	return render(request, 'users/profile.html', context)
+		return render(request, 'users/profile.html', context)
 
-
-
-def nonteachingstaff(request):
-	if request.method == 'POST':
-		form = NonTeachingStaffUpdateForm(request.POST)
-		if form.is_valid():
-			form.save()
-			messages.success(request, f'Teacher timeoff applied')
-			return redirect('profile')
+@login_required
+def login_success(request):
+	"""
+	Redirects users based on whether they are in the admins group
+	"""
+	if request.user.type == User.Types.NONTEACHINGSTAFF:
+		# user is an admin
+		messages.success(request, f'NOT a teacher')
+		return redirect("nonteacherapply")
 	else:
-		form = NonTeachingStaffUpdateForm()
-	return render(request, 'users/nonteachingstaff.html', {'form': form})
+		messages.success(request, f'IS a teacher')
+		return redirect("teacherapply")
 
+@login_required
+def nonteacherapply(request):
+	if request.method == 'POST':
+		form = NonTeacherApplyForm(request.POST)
+		# start_date=request.POST['startdate']
+		# end_date =request.POST['enddate']
+
+		print(request.POST['startdate'])
+		if form.is_valid():
+			a_form = form.save(commit=False)
+			a_form.user = request.user
+			a_form.save()
+
+			messages.success(request, f'Non Teacher timeoff applied')
+
+			return redirect('success')
+	else:
+		form = NonTeacherApplyForm()
+		
+	return render(request, "users/apply.html", {'form': form})
+
+@login_required
 def teacherapply(request):
 	if request.method == 'POST':
-		form = ApplyForm(request.POST)
+		form = TeacherApplyForm(request.POST)
 		# start_date=request.POST['startdate']
 		# end_date =request.POST['enddate']
 
@@ -81,23 +104,27 @@ def teacherapply(request):
 
 			return redirect('success')
 	else:
-		form = ApplyForm()
+		form = TeacherApplyForm()
 		
 	return render(request, "users/apply.html", {'form': form})
 
 def success(req):
-	obj = LeaveApplication.objects.get(id=1)
+	obj = LeaveApplication.objects.all()
 	context = {"object" : obj
 	}
 	return render(req,"users/success.html",context)
 
+@login_required
 def managerlistview(req):
-	queryset = LeaveApplication.objects.all() # list of objects
+
+	# req.user.SupervisorDetail.overseeing
+	queryset = LeaveApplication.objects.filter(user__id=req.user.SupervisorDetail.overseeing) # list of objects
 	context = {
 		"objec_list" : queryset
 	}
 	return render(req, "users/managerlistview.html", context)
 
+@login_required
 def managerapprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)

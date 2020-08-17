@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile
-from customstaff.models import User, TeachingStaffMore, NonTeachingStaffMore, TeachingStaff, NonTeachingStaff, LeaveApplication
+from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication
 
 
 
@@ -36,21 +36,21 @@ class ProfileUpdateForm(forms.ModelForm):
 class TeachingStaffUpdateForm(forms.ModelForm):
 
 	class Meta:
-		model = TeachingStaffMore
+		model = TeachingStaffDetail
 		fields = ['sickleave', 'casualleave']
 
 class NonTeachingStaffUpdateForm(forms.ModelForm):
 
 	class Meta:
-		model = NonTeachingStaffMore
+		model = NonTeachingStaffDetail
 		fields = ['sickleave', 'annualleave']
 
-class ApplyForm(forms.ModelForm):
-	# timeofftype = forms.CharField(label='What are you doing')
+class TeacherApplyForm(forms.ModelForm):
+
 	class Meta:
 		model = LeaveApplication
 		fields = [
-			'timeofftype',
+			'teachertimeofftype',
 			'startdate',
 			'enddate',
 			'reason'
@@ -63,6 +63,17 @@ class ApplyForm(forms.ModelForm):
 	# 	# 	raise forms.ValidationError("this is not email")
 	# 	# else:
 	# 	return duration
+
+class NonTeacherApplyForm(forms.ModelForm):
+
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'nonteachertimeofftype',
+			'startdate',
+			'enddate',
+			'reason'
+		]
 
 class FirstValidate(forms.ModelForm):
 	class Meta:
