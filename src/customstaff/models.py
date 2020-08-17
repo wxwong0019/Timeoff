@@ -199,8 +199,8 @@ class NonTeachingStaffDetail(models.Model):
 	is_nonteacher = models.BooleanField('Non teaching staff status', default=True)
 
 class SupervisorDetail(models.Model):
-	user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='SupervisorDetail')
-	overseeing = models.ManyToManyField(User, related_name='overseeing')
+	user = models.OneToOneField(Supervisor, on_delete=models.CASCADE, null=True, blank=True, related_name='SupervisorDetail')
+	overseeing = models.ManyToManyField(NonTeachingStaff, related_name='overseeing')
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0)
@@ -267,6 +267,8 @@ class LeaveApplication(models.Model):
 	finalstatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
 	finalcomment = models.CharField(max_length= 200, blank=True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+	# leaveoversee = models.ManyToManyField(Supervisor, related_name='leaveoversee')
+
 	def __str__(self):
 		return self.user.username
 

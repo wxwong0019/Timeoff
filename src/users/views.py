@@ -117,8 +117,8 @@ def success(req):
 @login_required
 def managerlistview(req):
 
-	# req.user.SupervisorDetail.overseeing
-	queryset = LeaveApplication.objects.filter(user__id=req.user.SupervisorDetail.overseeing) # list of objects
+	userid =  req.user.SupervisorDetail.overseeing.all()
+	queryset = LeaveApplication.objects.filter(user__id__in=userid.all()) # list of objects
 	context = {
 		"objec_list" : queryset
 	}
