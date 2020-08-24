@@ -9,9 +9,10 @@ from .forms import(
 	ProfileUpdateForm,
 	TeacherApplyForm,
 	NonTeacherApplyForm,
-	FirstValidate
+	SecondValidate,
+	FirstValidate,
 	) 
-from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication, SupervisorDetail
+from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication, SupervisorDetail, VicePrincipalDetail
 # Create your views here.
 # def register(request):
 # 	if request.method == 'POST':
@@ -147,18 +148,34 @@ def managerapprove(request, myid):
 	# }
 	return render(request, "users/approve.html", context)
 
-# def managerapprove(request, myid):
-# 	if request.method == 'POST':	
-# 		u_form = FirstValidate(request.POST,instance=request.myid)
-# 		if u_form.is_valid():
-# 			u_form.save()
-# 			messages.success(request, f'Your Account Has Been Updated')
-# 			return redirect('profile')
-# 	else:
-# 		u_form = FirstValidate(instance=request.user)
+@login_required
+def vplistview(req):
+	userid =  req.user.VicePrincipalDetail.allvp.all()
+	queryset = LeaveApplication.objects.exclude(user__id__in=userid.all()) # list of objects
+	context = {
+		"objec_list" : queryset
+	}
+	return render(req, "users/vplistview.html", context)
+
+@login_required
+def vpapprove(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+	if request.method == 'POST':	
+		u_form = FirstValidate(request.POST, instance=obj)
+		if u_form.is_valid():
+			u_form.save()
+			messages.success(request, f'DONE')
+			return redirect('success')
+	else:
+		u_form = FirstValidate(instance=obj)
 
 
-# 		context = {
-# 			'u_form':u_form,
-# 		}
-# 	return render(request, 'users/approve.html', context)
+		context = {
+			'u_form':u_form,
+			'obj' : obj
+		}
+	# context = {
+	# 	"objec" : obj
+	# }
+	return render(request, "users/vpapprove.html", context)

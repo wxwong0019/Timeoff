@@ -45,11 +45,11 @@ class User(AbstractBaseUser):
 	username = models.CharField(max_length= 100, default = '',unique=True)
 	is_active = models.BooleanField(default=True)
 	is_admin = models.BooleanField(default=False)
-	# is_teacher = models.BooleanField('teacher status', default=False)
-	# is_nonteacher = models.BooleanField('Non teaching staff status', default=False)
-	# is_supervisor = models.BooleanField('Supervisor status', default=False)
-	# is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
-	# is_principal = models.BooleanField('Principal status', default=False)
+	is_teacher = models.BooleanField('teacher status', default=False)
+	is_nonteacher = models.BooleanField('Non teaching staff status', default=False)
+	is_supervisor = models.BooleanField('Supervisor status', default=False)
+	is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
+	is_principal = models.BooleanField('Principal status', default=False)
 
 	REQUIRED_FIELDS = ['username']
 	objects = MyUserManager()
@@ -66,38 +66,38 @@ class User(AbstractBaseUser):
 	
 	type = models.CharField(_("Types"), max_length=50, choices=Types.choices)
 
-	# def save(self, *args, **kwargs):
-	# 		if self.type == User.Types.TEACHINGSTAFF:
-	# 			self.is_teacher = True
-	# 			self.is_nonteacher = False
-	# 			self.is_supervisor = False
-	# 			self.is_viceprincipal = False
-	# 			self.is_principal = False
-	# 		elif self.type == User.Types.NONTEACHINGSTAFF:
-	# 			self.is_teacher = False
-	# 			self.is_nonteacher = True
-	# 			self.is_supervisor = False
-	# 			self.is_viceprincipal = False
-	# 			self.is_principal = False
-	# 		elif self.type == User.Types.SUPERVISOR:
-	# 			self.is_teacher = False
-	# 			self.is_nonteacher = False
-	# 			self.is_supervisor = True
-	# 			self.is_viceprincipal = False
-	# 			self.is_principal = False
-	# 		elif self.type == User.Types.VICEPRINCIPAL:
-	# 			self.is_teacher = False
-	# 			self.is_nonteacher = False
-	# 			self.is_supervisor = False
-	# 			self.is_viceprincipal = True
-	# 			self.is_principal = False
-	# 		elif self.type == User.Types.PRINCIPAL:
-	# 			self.is_teacher = False
-	# 			self.is_nonteacher = False
-	# 			self.is_supervisor = False
-	# 			self.is_viceprincipal = False
-	# 			self.is_principal = True
-	# 		return super(User, self).save(*args, **kwargs)
+	def save(self, *args, **kwargs):
+			if self.type == User.Types.TEACHINGSTAFF:
+				self.is_teacher = True
+				self.is_nonteacher = False
+				self.is_supervisor = False
+				self.is_viceprincipal = False
+				self.is_principal = False
+			elif self.type == User.Types.NONTEACHINGSTAFF:
+				self.is_teacher = False
+				self.is_nonteacher = True
+				self.is_supervisor = False
+				self.is_viceprincipal = False
+				self.is_principal = False
+			elif self.type == User.Types.SUPERVISOR:
+				self.is_teacher = False
+				self.is_nonteacher = False
+				self.is_supervisor = True
+				self.is_viceprincipal = False
+				self.is_principal = False
+			elif self.type == User.Types.VICEPRINCIPAL:
+				self.is_teacher = True
+				self.is_nonteacher = False
+				self.is_supervisor = False
+				self.is_viceprincipal = True
+				self.is_principal = False
+			elif self.type == User.Types.PRINCIPAL:
+				self.is_teacher = False
+				self.is_nonteacher = False
+				self.is_supervisor = False
+				self.is_viceprincipal = False
+				self.is_principal = True
+			return super(User, self).save(*args, **kwargs)
 
 	def get_absolute_url(self):
 		return reverse("users:detail", kwargs={"username": self.username})
@@ -177,6 +177,18 @@ class Supervisor(User):
 			self.type = self.base_type
 		return super().save(*args, **kwargs)
 
+class VicePrincipal(User):
+	base_type = User.Types.VICEPRINCIPAL
+	objects = VicePrincipalManager()
+
+	class Meta:
+		proxy = True
+
+	def save(self, *args, **kwargs):
+		if not self.pk:
+			self.type = self.base_type
+		return super().save(*args, **kwargs)
+
 class TeachingStaffDetail(models.Model):
 	user = models.OneToOneField(TeachingStaff, on_delete=models.CASCADE)
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
@@ -207,6 +219,17 @@ class SupervisorDetail(models.Model):
 	firstday = models.DateField(default=timezone.now())
 
 	is_supervisor = models.BooleanField('Supervisor status', default=True)
+	is_teacher = models.BooleanField('Teacher status', default=True)
+
+class VicePrincipalDetail(models.Model):
+	user = models.OneToOneField(VicePrincipal, on_delete=models.CASCADE,null=True, blank=True, related_name='VicePrincipalDetail')
+	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
+	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
+	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0)
+	firstday = models.DateField(default=timezone.now())
+	is_teacher = models.BooleanField('teacher status', default=True)
+	is_viceprincipal = models.BooleanField('VicePrincipal status', default=True)
+	allvp = models.ManyToManyField(VicePrincipal, related_name='allvp')
 
 class LeaveApplication(models.Model):
 	sickleave = 'SL'
@@ -221,6 +244,8 @@ class LeaveApplication(models.Model):
 	leaveforspecialevents = 'LS'
 	overtime = 'OT'
 	others = 'O'
+
+
 
 	TEACHER_TIMEOFF_CHOICES = [
 		(sickleave, 'Sick Leave'),
@@ -264,9 +289,16 @@ class LeaveApplication(models.Model):
 	reason = models.CharField(max_length= 200, default = '')
 	firststatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
 	firstcomment = models.CharField(max_length= 200, blank=True)
+	secondstatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
+	secondcomment = models.CharField(max_length= 200, blank=True)
 	finalstatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
 	finalcomment = models.CharField(max_length= 200, blank=True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+	# is_teacher = models.BooleanField('teacher status', default=False)
+	# is_nonteacher = models.BooleanField('Non teaching staff status', default=False)
+	# is_supervisor = models.BooleanField('Supervisor status', default=False)
+	# is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
+	# is_principal = models.BooleanField('Principal status', default=False)
 	# leaveoversee = models.ManyToManyField(Supervisor, related_name='leaveoversee')
 
 	def __str__(self):
@@ -277,6 +309,7 @@ class LeaveApplication(models.Model):
 		end_date = self.enddate
 		self.duration = end_date - start_date
 		return super(LeaveApplication, self).save(*args, **kwargs)
+
 
 
 	def get_absolute_url(self):

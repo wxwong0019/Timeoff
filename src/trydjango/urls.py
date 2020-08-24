@@ -42,7 +42,8 @@ urlpatterns = [
     path('success/', user_views.success, name='success'),
     path('managerlistview/', user_views.managerlistview, name='managerlistview'),
     path('<int:myid>/managerapprove/', user_views.managerapprove, name='managerapprove'),
-
+    path('vplistview/', user_views.vplistview, name='vplistview'),
+    path('<int:myid>/vpapprove/', user_views.vpapprove, name='vpapprove'),
 
 
 ]

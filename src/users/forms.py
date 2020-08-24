@@ -1,9 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile
-from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication
-
-
+from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication,VicePrincipalDetail
+from bootstrap_datepicker_plus import DatePickerInput, TimePickerInput, DateTimePickerInput, MonthPickerInput, YearPickerInput
 
 # class UserRegisterForm(UserCreationForm):
 # 	email = forms.EmailField()
@@ -55,14 +54,30 @@ class TeacherApplyForm(forms.ModelForm):
 			'enddate',
 			'reason'
 		]
-	# def clean_duration(self, *arg, **kwarg):
-	# 	start_date = self.cleaned_data["startdate"]
-	# 	end_date = self.cleaned_data["enddate"]
-	# 	duration = end_date - start_date
-	# 	# if not email.endswith("edu"):
-	# 	# 	raise forms.ValidationError("this is not email")
-	# 	# else:
-	# 	return duration
+		widgets = {
+			'startdate':DateTimePickerInput(options={
+					 "format": "MM/DD/YYYY - hh:mm", # moment date-time format
+					 "showClose": True,
+					 "showClear": True,
+					 "showTodayButton": False,
+					 "stepping": 30,
+
+					 }
+				),
+			'enddate': DateTimePickerInput(options={
+					 "format": "MM/DD/YYYY - hh:mm", # moment date-time format
+					 "showClose": True,
+					 "showClear": True,
+					 "showTodayButton": False,
+					 "stepping": 30})
+					}
+	def clean(self):
+		startdate = self.cleaned_data.get('startdate')
+		enddate = self.cleaned_data.get('enddate')
+
+		if enddate <= startdate:
+			raise forms.ValidationError("End date must be later than start date")
+		return super(TeacherApplyForm, self).clean()
 
 class NonTeacherApplyForm(forms.ModelForm):
 
@@ -81,6 +96,14 @@ class FirstValidate(forms.ModelForm):
 		fields = [
 			'firststatus',
 			'firstcomment'
+		]
+
+class SecondValidate(forms.ModelForm):
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'secondstatus',
+			'secondcomment'
 		]
 
 class FinalValidate(forms.ModelForm):
