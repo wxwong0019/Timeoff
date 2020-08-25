@@ -14,16 +14,19 @@
           <p class="text-secondary">End Date : {{ obj.enddate }}</p>
           <p class="text-secondary">Duration : {{ obj.duration }}</p>
           <p class="text-secondary">Applicant Reason : {{ obj.reason }}</p><br>
-          <h4 class="account-heading">科主任批核結果:</h4>          
-          <p class="text-secondary">科主任 status : {{ obj.firststatus }}</p>
-          <p class="text-secondary">科主任 comment : {{ obj.firstcomment }}</p><br>
+          <h4 class="account-heading">Supervisor Validation:</h4>          
+          <p class="text-secondary">Supervisor Approval Status : {{ obj.firststatus }}</p>
+          <p class="text-secondary">Supervisor comment : {{ obj.firstcomment }}</p><br>
+          <h4 class="account-heading">Vice Principal Validation:</h4>          
+          <p class="text-secondary">Vice Principal Approval Status : {{ obj.secondstatus }}</p>
+          <p class="text-secondary">Vice Principal comment : {{ obj.secondcomment }}</p><br>
         </div>
       </div>
 
   <form method = 'POST' enctype='multipart/form-data'> 
     {% csrf_token %}
     <fieldset class='form-group'>
-      <legend class='border-bottom mb-4'> 副校長批核 </legend>
+      <legend class='border-bottom mb-4'> Principal Final Validation </legend>
       {{ u_form|crispy }}
 
     </fieldset>
@@ -34,15 +37,3 @@
 
   </div>
 {% endblock %}
-
-<!-- 
-<h1>In app template : {{ objec.user.username }}</h1>
-<p>{{objec.timeofftype}}</p>
-<p>{{objec.startdate}} </p>
-<p>{{objec.enddate}} </p>
-<p>{{objec.duration}} </p>
-<p>{{objec.reason}} </p>
-<p>{{objec.firststatus}} </p>
- -->
-
-

@@ -44,6 +44,8 @@ urlpatterns = [
     path('<int:myid>/managerapprove/', user_views.managerapprove, name='managerapprove'),
     path('vplistview/', user_views.vplistview, name='vplistview'),
     path('<int:myid>/vpapprove/', user_views.vpapprove, name='vpapprove'),
+    path('plistview/', user_views.plistview, name='plistview'),
+    path('<int:myid>/papprove/', user_views.papprove, name='papprove'),
 
 
 ]

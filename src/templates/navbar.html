@@ -6,17 +6,7 @@
   <div class="collapse navbar-collapse" id="navbarNav">
 
     <ul class="navbar-nav">
-    {% if user.is_teacher  %}
-	  <li class="nav-item">
-	    <a class="nav-link" href="{% url 'teacherapply' %}">Apply for TimeOff</a>
-	  </li>
-	  <li class="nav-item">
-	    <a class="nav-link" href="{% url 'profile' %}">Profile</a>
-	  </li>
-      <li class="nav-item">
-        <a class="nav-link " href="{% url 'logout' %}">Logout</a>
-      </li>
-    {% elif user.is_nonteacher %}
+    {% if user.is_nonteacher %}
     <li class="nav-item">
       <a class="nav-link" href="{% url 'nonteacherapply' %}">Apply for TimeOff</a>
     </li>
@@ -32,6 +22,29 @@
     </li>
     <li class="nav-item">
       <a class="nav-link" href="{% url 'managerlistview' %}">Manage Application</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'profile' %}">Profile</a>
+    </li>
+      <li class="nav-item">
+        <a class="nav-link " href="{% url 'logout' %}">Logout</a>
+      </li>
+      {% elif user.is_viceprincipal and user.is_teacher %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'teacherapply' %}">Apply for TimeOff</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'vplistview' %}">Vice Principal Manage Application</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'profile' %}">Profile</a>
+    </li>
+      <li class="nav-item">
+        <a class="nav-link " href="{% url 'logout' %}">Logout</a>
+      </li>
+      {% elif user.is_teacher  %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'teacherapply' %}">Apply for TimeOff</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="{% url 'profile' %}">Profile</a>

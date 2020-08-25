@@ -80,7 +80,7 @@ class User(AbstractBaseUser):
 				self.is_viceprincipal = False
 				self.is_principal = False
 			elif self.type == User.Types.SUPERVISOR:
-				self.is_teacher = False
+				self.is_teacher = True
 				self.is_nonteacher = False
 				self.is_supervisor = True
 				self.is_viceprincipal = False
@@ -92,7 +92,7 @@ class User(AbstractBaseUser):
 				self.is_viceprincipal = True
 				self.is_principal = False
 			elif self.type == User.Types.PRINCIPAL:
-				self.is_teacher = False
+				self.is_teacher = True
 				self.is_nonteacher = False
 				self.is_supervisor = False
 				self.is_viceprincipal = False
@@ -189,6 +189,18 @@ class VicePrincipal(User):
 			self.type = self.base_type
 		return super().save(*args, **kwargs)
 
+class Principal(User):
+	base_type = User.Types.PRINCIPAL
+	objects = PrincipalManager()
+
+	class Meta:
+		proxy = True
+
+	def save(self, *args, **kwargs):
+		if not self.pk:
+			self.type = self.base_type
+		return super().save(*args, **kwargs)
+
 class TeachingStaffDetail(models.Model):
 	user = models.OneToOneField(TeachingStaff, on_delete=models.CASCADE)
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
@@ -231,6 +243,11 @@ class VicePrincipalDetail(models.Model):
 	is_viceprincipal = models.BooleanField('VicePrincipal status', default=True)
 	allvp = models.ManyToManyField(VicePrincipal, related_name='allvp')
 
+class PrincipalDetail(models.Model):
+	user = models.OneToOneField(Principal, on_delete=models.CASCADE,null=True, blank=True, related_name='PrincipalDetail')
+	is_teacher = models.BooleanField('teacher status', default=True)
+	is_principal = models.BooleanField('Principal status', default=True)
+
 class LeaveApplication(models.Model):
 	sickleave = 'SL'
 	officialleave = 'OL'
@@ -245,8 +262,6 @@ class LeaveApplication(models.Model):
 	overtime = 'OT'
 	others = 'O'
 
-
-
 	TEACHER_TIMEOFF_CHOICES = [
 		(sickleave, 'Sick Leave'),
 		(officialleave, 'Official Leave'),
@@ -259,6 +274,7 @@ class LeaveApplication(models.Model):
 		(leaveforspecialevents, 'Leave for Special Events'),
 		(others, 'Others'),
 	]
+
 	NONTEACHER_TIMEOFF_CHOICES = [
 		(sickleave, 'Sick Leave'),
 		(officialleave, 'Official Leave'),

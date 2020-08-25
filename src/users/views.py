@@ -11,8 +11,9 @@ from .forms import(
 	NonTeacherApplyForm,
 	SecondValidate,
 	FirstValidate,
+	FinalValidate
 	) 
-from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication, SupervisorDetail, VicePrincipalDetail
+from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication, SupervisorDetail, VicePrincipalDetail, PrincipalDetail
 # Create your views here.
 # def register(request):
 # 	if request.method == 'POST':
@@ -61,10 +62,22 @@ def login_success(request):
 	"""
 	if request.user.type == User.Types.NONTEACHINGSTAFF:
 		# user is an admin
-		messages.success(request, f'NOT a teacher')
+		messages.success(request, f'非教職員登入')
 		return redirect("nonteacherapply")
+	elif request.user.type == User.Types.SUPERVISOR:
+		# user is an admin
+		messages.success(request, f'主管登入')
+		return redirect("teacherapply")
+	elif request.user.type == User.Types.VICEPRINCIPAL:
+		# user is an admin
+		messages.success(request, f'副校長登入')
+		return redirect("teacherapply")
+	elif request.user.type == User.Types.PRINCIPAL:
+		# user is an admin
+		messages.success(request, f'校長登入')
+		return redirect("plistview")
 	else:
-		messages.success(request, f'IS a teacher')
+		messages.success(request, f'教職員登入')
 		return redirect("teacherapply")
 
 @login_required
@@ -162,20 +175,45 @@ def vpapprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
 	if request.method == 'POST':	
-		u_form = FirstValidate(request.POST, instance=obj)
+		u_form = SecondValidate(request.POST, instance=obj)
 		if u_form.is_valid():
 			u_form.save()
 			messages.success(request, f'DONE')
 			return redirect('success')
 	else:
-		u_form = FirstValidate(instance=obj)
+		u_form = SecondValidate(instance=obj)
 
 
 		context = {
 			'u_form':u_form,
 			'obj' : obj
 		}
-	# context = {
-	# 	"objec" : obj
-	# }
 	return render(request, "users/vpapprove.html", context)
+
+@login_required
+def plistview(req):
+	queryset = LeaveApplication.objects.all() # list of objects
+	context = {
+		"objec_list" : queryset
+	}
+	return render(req, "users/plistview.html", context)
+
+@login_required
+def papprove(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+	if request.method == 'POST':	
+		u_form = FinalValidate(request.POST, instance=obj)
+		if u_form.is_valid():
+			u_form.save()
+			messages.success(request, f'DONE')
+			return redirect('success')
+	else:
+		u_form = FinalValidate(instance=obj)
+
+
+		context = {
+			'u_form':u_form,
+			'obj' : obj
+		}
+	return render(request, "users/papprove.html", context)
