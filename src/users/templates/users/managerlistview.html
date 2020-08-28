@@ -3,10 +3,22 @@
 {% block content %}
 
 {{ object_list }}
-
+<table style="width:35%">
+<tr>
+    <th>Status</th>
+    <th>Username</th>
+    <th>Leave Detail</th>
+  </tr>
 {% for stuff in objec_list %}
-	<p> {{ stuff.id }} is for <a href = '{{ stuff.get_absolute_url }}'>  {{ stuff.user.username }}</a> </p>
+	{% if stuff.firststatus == "Pending" %}
+		<tr>
 
+			<td> {{ stuff.firststatus }}</td>
+			<td> {{ stuff.user.username }} </td>
+			<td><a href = '{{ stuff.get_absolute_url }}'> Check detail </a></td>
+			
+		</tr>
+	{% endif%}	
 {% endfor %}
-
+</table>
 {% endblock %}

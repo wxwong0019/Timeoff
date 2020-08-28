@@ -15,7 +15,8 @@ from bootstrap_datepicker_plus import DatePickerInput, TimePickerInput, DateTime
 # 			'password1',
 # 			'password2',
 # 		]
-		
+TIME_FORMAT = '%I:%M %p'
+
 class UserUpdateForm(forms.ModelForm):
 	email = forms.EmailField()
 
@@ -45,39 +46,95 @@ class NonTeachingStaffUpdateForm(forms.ModelForm):
 		fields = ['sickleave', 'annualleave']
 
 class TeacherApplyForm(forms.ModelForm):
+	
+	# startdate = forms.DateField(label='Starting Date',
+	# 		 widget=forms.TextInput(     
+	# 		 attrs={
+	# 		 'type': 'date',
+	# 		 'class': 'startdate',
+	# 		 } 
+	# 		))
 
+	startdate = forms.DateField(label= 'Starting Date',widget=DatePickerInput(
+		options={
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'start-time',
+			 'placeholder' : "Pick a Date!",
+			 })
+			)
+						
+	starttime = forms.TimeField(label= 'Starting Time',widget=TimePickerInput(
+		options={"stepping" : 5,
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'starttime',
+			 'placeholder' : "Pick a Time!",
+			 })
+			)
+
+	enddate = forms.DateField(label= 'Ending Date',widget=DatePickerInput(
+		options={
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'start-time',
+			 'placeholder' : "Pick a Date!",
+			 })
+			)
+						
+	endtime = forms.TimeField(label= 'Ending Time',widget=TimePickerInput(
+		options={"stepping" : 5,
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'starttime',
+			 'placeholder' : "Pick a Time!",
+			 })
+			)
+	
+	reason	= forms.CharField(
+		widget=forms.Textarea(
+			attrs={
+				"cols" : 50,
+				"rows" : 3
+		}))		 
 	class Meta:
 		model = LeaveApplication
 		fields = [
 			'teachertimeofftype',
 			'startdate',
+			'starttime',
 			'enddate',
+			'endtime',
 			'reason'
 		]
-		widgets = {
-			'startdate':DateTimePickerInput(options={
-					 "format": "MM/DD/YYYY - hh:mm", # moment date-time format
-					 "showClose": True,
-					 "showClear": True,
-					 "showTodayButton": False,
-					 "stepping": 30,
+		
+				# 'startdate': forms.DatePickerInput(options={
+				# 		 "format": "MM/DD/YYYY", # moment date-time format
+				# 		 "showClose": True,
+				# 		 "showClear": True,
+				# 		 "showTodayButton": False,
+				# 		 "stepping": 30,
+				# 		 }
+				# 	)}
+				
+			# {'enddate': DatePickerInput(options={
+			# 		 "format": "MM/DD/YYYY", # moment date-time format
+			# 		 "showClose": True,
+			# 		 "showClear": True,
+			# 		 "showTodayButton": False,
+			# 		 "stepping": 30})
+			# 		}
+	# def clean(self):
+	# 	startdate = self.cleaned_data.get('startdate')
+	# 	enddate = self.cleaned_data.get('enddate')
 
-					 }
-				),
-			'enddate': DateTimePickerInput(options={
-					 "format": "MM/DD/YYYY - hh:mm", # moment date-time format
-					 "showClose": True,
-					 "showClear": True,
-					 "showTodayButton": False,
-					 "stepping": 30})
-					}
-	def clean(self):
-		startdate = self.cleaned_data.get('startdate')
-		enddate = self.cleaned_data.get('enddate')
-
-		if enddate <= startdate:
-			raise forms.ValidationError("End date must be later than start date")
-		return super(TeacherApplyForm, self).clean()
+	# 	if enddate <= startdate:
+	# 		raise forms.ValidationError("End date must be later than start date")
+	# 	return super(TeacherApplyForm, self).clean()
 
 class NonTeacherApplyForm(forms.ModelForm):
 

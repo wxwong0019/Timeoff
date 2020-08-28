@@ -297,10 +297,13 @@ class LeaveApplication(models.Model):
 		(denied, 'denied'),
 	]
 
+	created_at = models.DateTimeField(auto_now_add=True, blank=True)
 	teachertimeofftype = models.CharField(_("Teacher Type of Leave"),max_length= 10,choices = TEACHER_TIMEOFF_CHOICES, default=sickleave)
 	nonteachertimeofftype = models.CharField(_("Non Teacher Type of Leave"),max_length= 10,choices = NONTEACHER_TIMEOFF_CHOICES, default=sickleave)
-	startdate = models.DateTimeField(default=timezone.now())
-	enddate = models.DateTimeField(default=timezone.now())
+	startdate = models.DateField(default=timezone.now())
+	starttime = models.TimeField(default=timezone.now())
+	enddate = models.DateField(default=timezone.now())
+	endtime = models.TimeField(default=timezone.now())
 	duration = models.DurationField(default = datetime.timedelta)
 	reason = models.CharField(max_length= 200, default = '')
 	firststatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
