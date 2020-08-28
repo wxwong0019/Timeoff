@@ -216,11 +216,16 @@ class TeachingStaffDetail(models.Model):
 class NonTeachingStaffDetail(models.Model):
 	user = models.OneToOneField(NonTeachingStaff, on_delete=models.CASCADE)
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
-	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0)
-	firstday = models.DateField(default=timezone.now())
+	compensatedleave = models.DecimalField(_("Compensated Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
+	duration = models.DecimalField(_("Duration"),max_digits = 4, decimal_places = 1, default = 0)
 
+	firstday = models.DateField(default=timezone.now())
 	is_nonteacher = models.BooleanField('Non teaching staff status', default=True)
+
+	# def save(self, *args, **kwargs):
+	# 	finalduration
+	# 	return super(NonTeachingStaffDetail, self).save(*args, **kwargs)
 
 class SupervisorDetail(models.Model):
 	user = models.OneToOneField(Supervisor, on_delete=models.CASCADE, null=True, blank=True, related_name='SupervisorDetail')
@@ -298,7 +303,7 @@ class LeaveApplication(models.Model):
 	]
 
 	created_at = models.DateTimeField(auto_now_add=True, blank=True)
-	teachertimeofftype = models.CharField(_("Teacher Type of Leave"),max_length= 10,choices = TEACHER_TIMEOFF_CHOICES, default=sickleave)
+	teachertimeofftype = models.CharField(_("Type of Leave"),max_length= 10,choices = TEACHER_TIMEOFF_CHOICES, default=sickleave)
 	nonteachertimeofftype = models.CharField(_("Non Teacher Type of Leave"),max_length= 10,choices = NONTEACHER_TIMEOFF_CHOICES, default=sickleave)
 	startdate = models.DateField(default=timezone.now())
 	starttime = models.TimeField(default=timezone.now())
@@ -311,6 +316,7 @@ class LeaveApplication(models.Model):
 	secondstatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
 	secondcomment = models.CharField(max_length= 200, blank=True)
 	finalstatus = models.CharField(max_length= 10,choices = STATUS_CHOICES, default=pending)
+	finalduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 0, default = 0)
 	finalcomment = models.CharField(max_length= 200, blank=True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 	# is_teacher = models.BooleanField('teacher status', default=False)

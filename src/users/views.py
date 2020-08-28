@@ -13,7 +13,17 @@ from .forms import(
 	FirstValidate,
 	FinalValidate
 	) 
-from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication, SupervisorDetail, VicePrincipalDetail, PrincipalDetail
+from customstaff.models import (
+	User, 
+	TeachingStaffDetail, 
+	NonTeachingStaffDetail, 
+	TeachingStaff, 
+	NonTeachingStaff, 
+	LeaveApplication, 
+	SupervisorDetail, 
+	VicePrincipalDetail, 
+	PrincipalDetail	
+	)
 # Create your views here.
 # def register(request):
 # 	if request.method == 'POST':
@@ -202,11 +212,17 @@ def plistview(req):
 def papprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
-	if request.method == 'POST':	
+	if request.method == 'POST' :
 		u_form = FinalValidate(request.POST, instance=obj)
-		if u_form.is_valid():
+		duration = u_form.data['finalduration']
+		if u_form.is_valid() and obj.user.is_nonteacher:
 			u_form.save()
-			messages.success(request, f'DONE')
+			modify = obj.finalduration
+			userid = obj.user
+			nonteacher = NonTeachingStaffDetail.objects.get(user = userid)
+			nonteacher.sickleave = nonteacher.sickleave - modify
+			nonteacher.save()
+			messages.success(request, f'nonDONE')
 			return redirect('success')
 	else:
 		u_form = FinalValidate(instance=obj)

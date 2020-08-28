@@ -14,10 +14,11 @@
 	<form method = 'POST'> 
 		{% csrf_token %}
   	<fieldset class='form-group'>
+      <h3>Time Off Request</h3>
+    <hr/>
   		<!-- <legend class='border-bottom mb-4'> Ka Chi Staff Register </legend> -->
     <div class="start">
-    <h3>From</h3>
-    <hr/>
+    
     <div class="starttimefield">{{ form.startdate|as_crispy_field }}</div>
     <div class="starttimefield">{{ form.starttime|as_crispy_field }}</div>
         <hr/>
@@ -25,8 +26,6 @@
 
     </div>
     <div class="end">  
-    <h3>To</h3>
-    <hr/>
     <div class="endtimefield">{{ form.enddate|as_crispy_field }}</div>
     <div class="endtimefield">{{ form.endtime|as_crispy_field }}</div>
     </div>

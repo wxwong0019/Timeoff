@@ -43,7 +43,14 @@ class NonTeachingStaffUpdateForm(forms.ModelForm):
 
 	class Meta:
 		model = NonTeachingStaffDetail
-		fields = ['sickleave', 'annualleave']
+		fields = ['sickleave', 'annualleave', 'compensatedleave', 'duration']
+
+	# def clean(self):
+ #    	modify = self.cleaned_data['duration']
+ #    	if obj.user.teachertimeofftype == sickleave:
+ #    		sickleave = sickleave - modify
+
+	# 	return super(NonTeachingStaffUpdateForm, self).clean()
 
 class TeacherApplyForm(forms.ModelForm):
 	
@@ -55,7 +62,7 @@ class TeacherApplyForm(forms.ModelForm):
 	# 		 } 
 	# 		))
 
-	startdate = forms.DateField(label= 'Starting Date',widget=DatePickerInput(
+	startdate = forms.DateField(label= 'From date',widget=DatePickerInput(
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -65,7 +72,7 @@ class TeacherApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	starttime = forms.TimeField(label= 'Starting Time',widget=TimePickerInput(
+	starttime = forms.TimeField(label= 'From Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -75,7 +82,7 @@ class TeacherApplyForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'Ending Date',widget=DatePickerInput(
+	enddate = forms.DateField(label= 'Thru Date',widget=DatePickerInput(
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -85,7 +92,7 @@ class TeacherApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	endtime = forms.TimeField(label= 'Ending Time',widget=TimePickerInput(
+	endtime = forms.TimeField(label= 'Thru Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -168,5 +175,6 @@ class FinalValidate(forms.ModelForm):
 		model = LeaveApplication
 		fields = [
 			'finalstatus',
-			'finalcomment'
+			'finalduration',
+			'finalcomment',
 		]

@@ -10,6 +10,11 @@
         <div class="media-body">
           <h4 class="account-heading">Applicant : {{ obj.user.username }}</h4>
           <p class="text-secondary">email address : {{ obj.user.email }}</p>
+          {% if obj.user.is_teacher %}
+          <p class="text-secondary">Teacher Type of Leave : {{ obj.teachertimeofftype }}</p>
+          {% else}
+          <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
+          {% endif %}
           <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
           <p class="text-secondary">End Date : {{ obj.enddate }}</p>
           <p class="text-secondary">Duration : {{ obj.duration }}</p>
