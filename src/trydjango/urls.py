@@ -48,8 +48,8 @@ urlpatterns = [
     path('<int:myid>/papprove/', user_views.papprove, name='papprove'),
     path('plistviewdecided/', user_views.plistviewdecided, name='plistviewdecided'),
     path('<int:myid>/papprovedecided/', user_views.papprovedecided, name='papprovedecided'),
-
-
+    path('userlistview/', user_views.userlistview, name='userlistview'),
+    path('<int:myid>/userdetailview/', user_views.userdetailview, name='userdetailview'),
 ]
 
 

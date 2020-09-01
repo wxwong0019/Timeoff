@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{{ object_list }}
+
+<h4> Name : {{ obj.username }}</h4>
+<table style="width:90%">
+<tr class = 'table'>
+
+    <th>Name</th>
+    <th>nonteachertimeofftype</th>
+
+ 
+
+  </tr>
+{% for stuff in applicant %}
+
+		<tr class = 'table'>
+			<td>{{ stuff.user  }}</td>
+			<td>{{ stuff.nonteachertimeofftype  }}</td>
+		</tr>
+
+
+{% endfor %}
+
+</table>
+		
+{% endblock %}

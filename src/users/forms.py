@@ -139,7 +139,7 @@ class NonTeacherApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	starttime = forms.TimeField(label= 'From Time',widget=TimePickerInput(
+	starttime = forms.TimeField(required=False, label= 'From Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -159,7 +159,7 @@ class NonTeacherApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	endtime = forms.TimeField(label= 'Thru Time',widget=TimePickerInput(
+	endtime = forms.TimeField(required=False, label= 'Thru Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},

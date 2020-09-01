@@ -245,7 +245,7 @@ def papprove(request, myid):
 					return redirect('plistview')
 				elif obj.nonteachertimeofftype == 'Over Time':
 					modify = obj.finalduration
-					applicant.compensatedleave = applicant.compensatedleave + modify
+					applicant.compensatedleave = applicant.compensatedleave + abs(modify)
 					u_form.save()
 					applicant.save()
 					messages.success(request, f'non teacher DONE')
@@ -352,6 +352,33 @@ def papprovedecided(request, myid):
 		applicant = TeachingStaffDetail.objects.get(user = userid)
 
 	return render(request, "users/papprovedecided.html", {
+			'obj' : obj, 
+			'applicant' : applicant
+			})
+
+@login_required
+def userlistview(req):
+	queryset = User.objects.all() # list of objects
+	context = {
+		"objec_list" : queryset
+	}
+	return render(req, "users/userlistview.html", context)
+
+@login_required
+def userdetailview(request, myid):
+	obj = get_object_or_404(User, id =myid)
+	obj = User.objects.get(id=myid)
+
+	if obj.is_nonteacher:
+		applicant = LeaveApplication.objects.filter(user = obj)
+	elif obj.is_supervisor:
+		applicant = LeaveApplication.objects.filter(user = obj)
+	elif obj.is_viceprincipal:
+		applicant = LeaveApplication.objects.filter(user = obj)
+	else:
+		applicant = LeaveApplication.objects.filter(user = obj)
+
+	return render(request, "users/userdetailview.html", {
 			'obj' : obj, 
 			'applicant' : applicant
 			})
