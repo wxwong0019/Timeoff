@@ -1,101 +1,111 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
  <!--  <a class="navbar-brand" href="#"> Home </a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button> -->
-  <div class="collapse navbar-collapse" id="navbarNav">
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button> -->
+	<div class="collapse navbar-collapse" id="navbarNav" >
 
-    <ul class="navbar-nav">
-    {% if user.is_nonteacher %}
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'nonteacherapply' %}">Apply for TimeOff</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'profile' %}">Profile</a>
-    </li>
-      <li class="nav-item">
-        <a class="nav-link " href="{% url 'logout' %}">Logout</a>
-      </li>
-    {% elif user.is_principal and user.is_teacher %}
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'teacherapply' %}">Apply for TimeOff</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'plistview' %}">Principal Manage Application</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'profile' %}">Profile</a>
-    </li>
-      <li class="nav-item">
-        <a class="nav-link " href="{% url 'logout' %}">Logout</a>
-      </li>
-    {% elif user.is_supervisor %}
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'teacherapply' %}">Apply for TimeOff</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'managerlistview' %}">Manage Application</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'profile' %}">Profile</a>
-    </li>
-      <li class="nav-item">
-        <a class="nav-link " href="{% url 'logout' %}">Logout</a>
-      </li>
-      {% elif user.is_viceprincipal and user.is_teacher %}
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'teacherapply' %}">Apply for TimeOff</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'vplistview' %}">Vice Principal Manage Application</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'profile' %}">Profile</a>
-    </li>
-      <li class="nav-item">
-        <a class="nav-link " href="{% url 'logout' %}">Logout</a>
-      </li>
-      {% elif user.is_teacher  %}
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'teacherapply' %}">Apply for TimeOff</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'profile' %}">Profile</a>
-    </li>
-      <li class="nav-item">
-        <a class="nav-link " href="{% url 'logout' %}">Logout</a>
-      </li>
-  	{% else %}
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'login' %}">Login <span class="sr-only">(current)</span></a>
-      </li>
-     
-      <li class="nav-item">
-        <a class="nav-link" href="#">Contact Principal</a>
-      </li>
-    </ul>
-    {% endif %}
-  </div>
+		<ul class="navbar-nav">
+		{% if user.is_nonteacher %}
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'nonteacherapply' %}">Apply for TimeOff</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'profile' %}">Profile</a>
+		</li>
+			<li class="nav-item">
+				<a class="nav-link " href="{% url 'logout' %}">Logout</a>
+			</li>
+		{% elif user.is_principal and user.is_teacher %}
+	<!--   <li class="nav-item">
+			<a class="nav-link" href="{% url 'plistview' %}">Principal Manage Application</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'plistviewdecided' %}">Processed Application</a>
+		</li> -->
+
+		<li class="nav-item dropdown">
+		 <a class="nav-link  dropdown-toggle" href="#" data-toggle="dropdown" data-hover="dropdown"> View Applications </a>
+			<ul class="dropdown-menu">
+				<li><a class="dropdown-item" href="{% url 'plistview' %}"> Pending Application</a></li>
+				<li><a class="dropdown-item" href="{% url 'plistviewdecided' %}">Processed Application</a></li>
+			</ul>
+		</li>
+
+
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'profile' %}">Profile</a>
+		</li>
+			<li class="nav-item">
+				<a class="nav-link " href="{% url 'logout' %}">Logout</a>
+			</li>
+		{% elif user.is_supervisor %}
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'teacherapply' %}">TimeOff Apply</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'managerlistview' %}">Manage Application</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'profile' %}">Profile</a>
+		</li>
+			<li class="nav-item">
+				<a class="nav-link " href="{% url 'logout' %}">Logout</a>
+			</li>
+			{% elif user.is_viceprincipal and user.is_teacher %}
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'teacherapply' %}">TimeOff Apply</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'vplistview' %}">Manage Application</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'profile' %}">Profile</a>
+		</li>
+			<li class="nav-item">
+				<a class="nav-link " href="{% url 'logout' %}">Logout</a>
+			</li>
+			{% elif user.is_teacher  %}
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'teacherapply' %}">TimeOff Apply</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'profile' %}">Profile</a>
+		</li>
+			<li class="nav-item">
+				<a class="nav-link " href="{% url 'logout' %}">Logout</a>
+			</li>
+		{% else %}
+			<li class="nav-item">
+				<a class="nav-link" href="{% url 'login' %}">Login <span class="sr-only">(current)</span></a>
+			</li>
+		 
+			<li class="nav-item">
+				<a class="nav-link" href="#">Contact Principal</a>
+			</li>
+		</ul>
+		{% endif %}
+	</div>
 </nav>
 
 <!-- <ul class="nav">
-  	{% if user.is_authenticated %}
-  <li class="nav-item">
-    <a class="nav-link active" href="#">Apply for TimeOff</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">Logout</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">Placeholder</a>
-  </li>
-  {% else %}
-  <li class="nav-item">
-    <a class="nav-link" href="#">Login</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">Contact anson</a>
-  </li>
-   {% endif %}
+		{% if user.is_authenticated %}
+	<li class="nav-item">
+		<a class="nav-link active" href="#">Apply for TimeOff</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link" href="#">Logout</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link" href="#">Placeholder</a>
+	</li>
+	{% else %}
+	<li class="nav-item">
+		<a class="nav-link" href="#">Login</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link" href="#">Contact anson</a>
+	</li>
+	 {% endif %}
 
 </ul> -->

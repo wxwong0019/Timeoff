@@ -46,6 +46,8 @@ urlpatterns = [
     path('<int:myid>/vpapprove/', user_views.vpapprove, name='vpapprove'),
     path('plistview/', user_views.plistview, name='plistview'),
     path('<int:myid>/papprove/', user_views.papprove, name='papprove'),
+    path('plistviewdecided/', user_views.plistviewdecided, name='plistviewdecided'),
+    path('<int:myid>/papprovedecided/', user_views.papprovedecided, name='papprovedecided'),
 
 
 ]

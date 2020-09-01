@@ -119,42 +119,75 @@ class TeacherApplyForm(forms.ModelForm):
 			'reason'
 		]
 		
-				# 'startdate': forms.DatePickerInput(options={
-				# 		 "format": "MM/DD/YYYY", # moment date-time format
-				# 		 "showClose": True,
-				# 		 "showClear": True,
-				# 		 "showTodayButton": False,
-				# 		 "stepping": 30,
-				# 		 }
-				# 	)}
-				
-			# {'enddate': DatePickerInput(options={
-			# 		 "format": "MM/DD/YYYY", # moment date-time format
-			# 		 "showClose": True,
-			# 		 "showClear": True,
-			# 		 "showTodayButton": False,
-			# 		 "stepping": 30})
-			# 		}
-	# def clean(self):
-	# 	startdate = self.cleaned_data.get('startdate')
-	# 	enddate = self.cleaned_data.get('enddate')
+	def clean_enddate(self):
+		startdate = self.cleaned_data.get('startdate')
+		enddate = self.cleaned_data.get('enddate')
 
-	# 	if enddate <= startdate:
-	# 		raise forms.ValidationError("End date must be later than start date")
-	# 	return super(TeacherApplyForm, self).clean()
+		if startdate > enddate:
+			raise forms.ValidationError("End date must be later than start date")
+		else:
+			return enddate
 
 class NonTeacherApplyForm(forms.ModelForm):
+	startdate = forms.DateField(label= 'From date',widget=DatePickerInput(
+		options={
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'start-time',
+			 'placeholder' : "Pick a Date!",
+			 })
+			)
+						
+	starttime = forms.TimeField(label= 'From Time',widget=TimePickerInput(
+		options={"stepping" : 5,
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'starttime',
+			 'placeholder' : "Pick a Time!",
+			 })
+			)
 
+	enddate = forms.DateField(label= 'Thru Date',widget=DatePickerInput(
+		options={
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'start-time',
+			 'placeholder' : "Pick a Date!",
+			 })
+			)
+						
+	endtime = forms.TimeField(label= 'Thru Time',widget=TimePickerInput(
+		options={"stepping" : 5,
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'starttime',
+			 'placeholder' : "Pick a Time!",
+			 })
+			)
+	
+	reason	= forms.CharField(
+		widget=forms.Textarea(
+			attrs={
+				"cols" : 50,
+				"rows" : 3
+		}))
 	class Meta:
 		model = LeaveApplication
 		fields = [
 			'nonteachertimeofftype',
 			'startdate',
+			'starttime',
 			'enddate',
+			'endtime',
 			'reason'
 		]
 
 class FirstValidate(forms.ModelForm):
+
 	class Meta:
 		model = LeaveApplication
 		fields = [
@@ -163,6 +196,8 @@ class FirstValidate(forms.ModelForm):
 		]
 
 class SecondValidate(forms.ModelForm):
+
+	
 	class Meta:
 		model = LeaveApplication
 		fields = [
@@ -171,6 +206,7 @@ class SecondValidate(forms.ModelForm):
 		]
 
 class FinalValidate(forms.ModelForm):
+	# finalduration = DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 0, default = )
 	class Meta:
 		model = LeaveApplication
 		fields = [
@@ -178,3 +214,4 @@ class FinalValidate(forms.ModelForm):
 			'finalduration',
 			'finalcomment',
 		]
+

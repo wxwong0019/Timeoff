@@ -212,24 +212,146 @@ def plistview(req):
 def papprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
+	userid = obj.user
+	if obj.user.is_nonteacher:
+		applicant = NonTeachingStaffDetail.objects.get(user = userid)
+	elif obj.user.is_supervisor:
+		applicant = SupervisorDetail.objects.get(user = userid)
+	elif obj.user.is_viceprincipal:
+		applicant = VicePrincipalDetail.objects.get(user = userid)
+	else:
+		applicant = TeachingStaffDetail.objects.get(user = userid)
+	# supervisor = SupervisorDetail.objects.get(user = userid)
+	# viceprincipal = VicePrincipalDetail.objects.get(user = userid)
+	# teacher = TeachingStaffDetail.objects.get(user = userid)
+
 	if request.method == 'POST' :
 		u_form = FinalValidate(request.POST, instance=obj)
 		duration = u_form.data['finalduration']
 		if u_form.is_valid() and obj.user.is_nonteacher:
-			u_form.save()
-			modify = obj.finalduration
-			userid = obj.user
-			nonteacher = NonTeachingStaffDetail.objects.get(user = userid)
-			nonteacher.sickleave = nonteacher.sickleave - modify
-			nonteacher.save()
-			messages.success(request, f'nonDONE')
-			return redirect('success')
+				if obj.nonteachertimeofftype == 'Annual Leave':
+					modify = obj.finalduration
+					applicant.annualleave = applicant.annualleave - abs(modify)
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'non teacher DONE')
+					return redirect('plistview')
+				elif obj.nonteachertimeofftype == 'Sick Leave':
+					modify = obj.finalduration
+					applicant.sickleave = applicant.sickleave - abs(modify)
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'non teacher DONE')
+					return redirect('plistview')
+				elif obj.nonteachertimeofftype == 'Over Time':
+					modify = obj.finalduration
+					applicant.compensatedleave = applicant.compensatedleave + modify
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'non teacher DONE')
+					return redirect('plistview')
+				else:
+					u_form.save()
+					messages.success(request, f'non teacher DONE')
+					return redirect('plistview')
+
+		elif u_form.is_valid() and obj.user.is_supervisor:
+				if obj.teachertimeofftype == 'Casual Leave':
+					modify = obj.finalduration
+					applicant.casualleave = applicant.casualleave - abs(modify)
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'supervisor DONE')
+					return redirect('plistview')
+				elif obj.teachertimeofftype == 'Sick Leave':
+					modify = obj.finalduration
+					applicant.sickleave = applicant.sickleave - abs(modify)
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'supervisor DONE')
+					return redirect('plistview')
+				else:
+					u_form.save()
+					messages.success(request, f'supervisor DONE')
+					return redirect('plistview')	
+
+		elif u_form.is_valid() and obj.user.is_viceprincipal:
+				if obj.teachertimeofftype == 'Casual Leave':
+					modify = obj.finalduration
+					applicant.casualleave = applicant.casualleave - abs(modify)
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'viceprincipal DONE')
+					return redirect('plistview')
+				elif obj.teachertimeofftype == 'Sick Leave':
+					modify = obj.finalduration
+					applicant.sickleave = applicant.sickleave - abs(modify)
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'viceprincipal DONE')
+					return redirect('plistview')	
+				else:
+					u_form.save()
+					messages.success(request, f'viceprincipal DONE')
+					# return redirect('success')		
+
+		elif u_form.is_valid() and obj.user.is_teacher:
+				if obj.teachertimeofftype == 'Casual Leave':
+					modify = obj.finalduration
+					applicant.casualleave = applicant.casualleave - abs(modify)
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'teacher DONE')
+					return redirect('plistview')
+				elif obj.teachertimeofftype == 'Sick Leave':
+					modify = obj.finalduration
+					applicant.sickleave = applicant.sickleave - abs(modify)
+					u_form.save()
+					applicant.save()
+					messages.success(request, f'teacher DONE')
+					return redirect('plistview')
+				else:
+					u_form.save()
+					messages.success(request, f'teacher DONE')
+					# return redirect('success')	
+			
 	else:
 		u_form = FinalValidate(instance=obj)
 
 
-		context = {
-			'u_form':u_form,
-			'obj' : obj
-		}
-	return render(request, "users/papprove.html", context)
+		# context = {
+		# 	'u_form':u_form,
+		# 	'obj' : obj, 
+		# 	'applicant' : applicant
+		# }
+	return render(request, "users/papprove.html", {
+													'u_form':u_form,
+													'obj' : obj, 
+													'applicant' : applicant})
+
+@login_required
+def plistviewdecided(req):
+	queryset = LeaveApplication.objects.all() # list of objects
+	context = {
+		"objec_list" : queryset
+	}
+	return render(req, "users/plistviewdecided.html", context)
+
+@login_required
+def papprovedecided(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+	userid = obj.user
+	if obj.user.is_nonteacher:
+		applicant = NonTeachingStaffDetail.objects.get(user = userid)
+	elif obj.user.is_supervisor:
+		applicant = SupervisorDetail.objects.get(user = userid)
+	elif obj.user.is_viceprincipal:
+		applicant = VicePrincipalDetail.objects.get(user = userid)
+	else:
+		applicant = TeachingStaffDetail.objects.get(user = userid)
+
+	return render(request, "users/papprovedecided.html", {
+			'obj' : obj, 
+			'applicant' : applicant
+			})

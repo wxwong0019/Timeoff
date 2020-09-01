@@ -3,24 +3,43 @@
 {% block content %}
 
 {{ object_list }}
-
-<table style="width:35%">
-<tr>
-    <th>Status</th>
-    <th>Username</th>
-    <th>Leave Detail</th>
+<h4>Pending Applications</h4>
+<table style="width:90%">
+<tr class = 'table'>
+    <th >Status</th>
+    <th>Apply Date/Time</th>
+    <th>Name</th>
+    <th>Leave Type</th>
+    <th>Duration</th>
+    <th>Vice Principal Decision</th>
+    <th>Direct Supervisor</th>
   </tr>
 {% for stuff in objec_list %}
-	{% if stuff.firststatus == "Pending" %}
-		<tr>
-
-			<td> {{ stuff.firststatus }}</td>
+	{% if stuff.finalstatus == "Pending" %}
+		{% if stuff.user.is_nonteacher %}
+		<tr class = 'table'>
+			<td><a href = "{% url 'papprove' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
+			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
-			<td><a href = "{% url 'papprove' myid=stuff.id %}"> Check detail </a></td>
-			
+			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+			<td> {{ stuff.secondstatus }}</td>
+			<td> {{ stuff.firststatus }}</td>
 		</tr>
-	{% endif%}	
+		{% else %}
+		<tr class = 'table'>
+			<td><a href = "{% url 'papprove' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
+			<td> {{ stuff.created_at }}</td>
+			<td> {{ stuff.user.username }} </td>
+			<td> {{ stuff.teachertimeofftype }}</td>
+			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+			<td> {{ stuff.secondstatus }}</td>
+			<td> Not Applicable</td>
+		</tr>
+		{% endif%}
+	{% endif %}	
 {% endfor %}
-</table>
 
+</table>
+		
 {% endblock %}

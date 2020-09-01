@@ -3,40 +3,37 @@
 {% block content %}
 
 {{ object_list }}
-
-<h4>Pending Applications</h4>
-<table style="width:90%">
+<h4>Processed Applications</h4>
+<table style="width:70%">
 <tr class = 'table'>
     <th >Status</th>
     <th>Apply Date/Time</th>
     <th>Name</th>
     <th>Leave Type</th>
     <th>Duration</th>
-    <th>Direct Supervisor</th>
   </tr>
 {% for stuff in objec_list %}
-	{% if stuff.secondstatus == "Pending" %}
+	{% if stuff.finalstatus == "Approved" or stuff.finalstatus == "Denied" %}
 		{% if stuff.user.is_nonteacher %}
 		<tr class = 'table'>
-			<td><a href = "{% url 'vpapprove' myid=stuff.id %}"> {{ stuff.secondstatus }}</td></a>
+			<td><a href = "{% url 'papprovedecided' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
 			<td> {{ stuff.nonteachertimeofftype }}</td>
 			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-			<td> {{ stuff.firststatus }}</td>
 		</tr>
 		{% else %}
 		<tr class = 'table'>
-			<td><a href = "{% url 'vpapprove' myid=stuff.id %}"> {{ stuff.secondstatus }}</td></a>
+			<td><a href = "{% url 'papprovedecided' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
 			<td> {{ stuff.teachertimeofftype }}</td>
 			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-			<td> Not Applicable</td>
 		</tr>
 		{% endif%}
-	{% endif %}	
+	{% endif%}	
 {% endfor %}
 
 </table>
+
 {% endblock %}

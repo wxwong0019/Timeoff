@@ -43,20 +43,12 @@
           <h4 class="account-heading">Vice Principal Validation:</h4>          
           <p class="text-secondary">Vice Principal Approval Status : {{ obj.secondstatus }}</p>
           <p class="text-secondary">Vice Principal comment : {{ obj.secondcomment }}</p><br>
+          <h4 class="account-heading">Principal Validation:</h4>    
+          <p class="text-secondary">Principal Approval Status : {{ obj.finalstatus }}</p>
+          <p class="text-secondary">Principal comment : {{ obj.finalcomment }}</p><br>
         </div>
       </div>
 
-  <form method = 'POST' enctype='multipart/form-data' onsubmit="return confirm('Just want to make sure DID YOU DOUBLE CHECK?');"> 
-    {% csrf_token %}
-    <fieldset class='form-group'>
-      <legend class='border-bottom mb-4'> Principal Final Validation </legend>
-      {{ u_form|crispy }}
-
-    </fieldset>
-    <div class='form-group'>
-      <button type="submit" class="btn btn-primary" onclick="return confirm('*** WARNING : Check your entry as this is an irreversible action. Do you really want to submit? ***');" >Save</button>
-    </div>
-  </form>
 
   </div>
 {% endblock %}
