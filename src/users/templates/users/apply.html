@@ -41,6 +41,11 @@
     <input  type="checkbox" id="checkbox1" onclick="changeHideStatus()" />
     <label for="checkbox1">Time Option</label>
     </div>
+    {% if user.is_supervisor %}
+            <div class="reason">super{{ pickform.pickuser|as_crispy_field }}</div>
+
+      
+      {% endif %}
     <div class="reason">{{ form.reason|as_crispy_field }}</div>
     
     <script>

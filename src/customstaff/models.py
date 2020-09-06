@@ -337,10 +337,10 @@ class LeaveApplication(models.Model):
 		self.duration = end_date - start_date
 		return super(LeaveApplication, self).save(*args, **kwargs)
 
-
-
 	def get_absolute_url(self):
 		return  reverse("managerapprove", kwargs={"myid" : self.id})  #f"/timeoff/{self.id}"
 
+class Picker(models.Model):
+	pickuser = models.ManyToManyField(User, related_name='pickuser')
 
 		

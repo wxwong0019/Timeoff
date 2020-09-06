@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile
-from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication,VicePrincipalDetail
+from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication,VicePrincipalDetail, Picker
 from bootstrap_datepicker_plus import DatePickerInput, TimePickerInput, DateTimePickerInput, MonthPickerInput, YearPickerInput
 
 # class UserRegisterForm(UserCreationForm):
@@ -54,14 +54,6 @@ class NonTeachingStaffUpdateForm(forms.ModelForm):
 
 class TeacherApplyForm(forms.ModelForm):
 	
-	# startdate = forms.DateField(label='Starting Date',
-	# 		 widget=forms.TextInput(     
-	# 		 attrs={
-	# 		 'type': 'date',
-	# 		 'class': 'startdate',
-	# 		 } 
-	# 		))
-
 	startdate = forms.DateField(label= 'From date',widget=DatePickerInput(
 		options={
 				"toolbarPlacement" : 'top',
@@ -72,7 +64,7 @@ class TeacherApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	starttime = forms.TimeField(label= 'From Time',widget=TimePickerInput(
+	starttime = forms.TimeField(required=False, label= 'From Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -92,7 +84,7 @@ class TeacherApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	endtime = forms.TimeField(label= 'Thru Time',widget=TimePickerInput(
+	endtime = forms.TimeField(required=False ,label= 'Thru Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -185,6 +177,14 @@ class NonTeacherApplyForm(forms.ModelForm):
 			'endtime',
 			'reason'
 		]
+
+class PickerForm(forms.ModelForm):
+	pickuser = forms.ModelMultipleChoiceField(queryset = User.objects.all())
+	class Meta:
+			model = Picker
+			fields = [
+				'pickuser'
+			]
 
 class FirstValidate(forms.ModelForm):
 

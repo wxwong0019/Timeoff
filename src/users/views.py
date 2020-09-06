@@ -11,7 +11,8 @@ from .forms import(
 	NonTeacherApplyForm,
 	SecondValidate,
 	FirstValidate,
-	FinalValidate
+	FinalValidate,
+	PickerForm
 	) 
 from customstaff.models import (
 	User, 
@@ -22,7 +23,8 @@ from customstaff.models import (
 	LeaveApplication, 
 	SupervisorDetail, 
 	VicePrincipalDetail, 
-	PrincipalDetail	
+	PrincipalDetail,
+	Picker
 	)
 # Create your views here.
 # def register(request):
@@ -77,7 +79,7 @@ def login_success(request):
 	elif request.user.type == User.Types.SUPERVISOR:
 		# user is an admin
 		messages.success(request, f'主管登入')
-		return redirect("teacherapply")
+		return redirect("supervisorapply")
 	elif request.user.type == User.Types.VICEPRINCIPAL:
 		# user is an admin
 		messages.success(request, f'副校長登入')
@@ -94,8 +96,7 @@ def login_success(request):
 def nonteacherapply(request):
 	if request.method == 'POST':
 		form = NonTeacherApplyForm(request.POST)
-		# start_date=request.POST['startdate']
-		# end_date =request.POST['enddate']
+
 
 		print(request.POST['startdate'])
 		if form.is_valid():
@@ -115,8 +116,6 @@ def nonteacherapply(request):
 def teacherapply(request):
 	if request.method == 'POST':
 		form = TeacherApplyForm(request.POST)
-		# start_date=request.POST['startdate']
-		# end_date =request.POST['enddate']
 
 		print(request.POST['startdate'])
 		if form.is_valid():
@@ -131,6 +130,36 @@ def teacherapply(request):
 		form = TeacherApplyForm()
 		
 	return render(request, "users/apply.html", {'form': form})
+
+@login_required
+def supervisorapply(request, *args, **kwargs):
+	# userid = get_object_or_404(User, user__id__inbn = request.POST.get('user'))
+	if request.method == 'POST':
+		# start_date=request.POST['startdate']
+		# end_date =request.POST['enddate']
+		pickform = PickerForm(request.POST)
+		form = TeacherApplyForm(request.POST)
+		userid = request.POST['pickuser']
+		user = User.objects.filter(id=userid)
+		# userid = list(User.objects.filter(username=request.POST['pickuser']).values('pickuser'))
+		if form.is_valid() and pickform.is_valid():		
+			f = form.save(commit=False)
+			p = pickform.save(commit=False)
+			startdate = form.cleaned_data.get('startdate')
+			enddate = form.cleaned_data.get('enddate')
+			reason = form.cleaned_data.get('reason')
+			alluser = pickform.cleaned_data.get('pickuser')
+			print(alluser)
+			for stuff in alluser:
+				f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, reason=reason, user=stuff)
+				f.save()			
+				messages.success(request, f'supervisor timeoff applied')				
+			return redirect('success')
+	else:
+		form = TeacherApplyForm()
+		pickform = PickerForm()
+
+	return render(request, "users/apply.html", {'form':form, 'pickform':pickform})
 
 def success(req):
 	obj = LeaveApplication.objects.all()

@@ -38,6 +38,7 @@ urlpatterns = [
     path('profile/', user_views.profile, name='profile'),
     path('teacherapply/', user_views.teacherapply, name='teacherapply'),
     path('nonteacherapply/', user_views.nonteacherapply, name='nonteacherapply'),
+    path('supervisorapply/', user_views.supervisorapply, name='supervisorapply'),
     path('login_success/', user_views.login_success, name='login_success'),    
     path('success/', user_views.success, name='success'),
     path('managerlistview/', user_views.managerlistview, name='managerlistview'),
