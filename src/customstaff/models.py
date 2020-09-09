@@ -311,7 +311,8 @@ class LeaveApplication(models.Model):
 	starttime = models.TimeField(default=timezone.now(), null=True)
 	enddate = models.DateField(default=timezone.now())
 	endtime = models.TimeField(default=timezone.now(), null=True)
-	duration = models.DurationField(default = datetime.timedelta)
+	duration = models.DecimalField(_("Total Days"),default = 0, max_digits = 1000, decimal_places = 2)
+	totalhr = models.DecimalField(_("Total Hours"),default = 0, max_digits = 1000, decimal_places = 0)
 	reason = models.CharField(max_length= 200, default = '')
 	firststatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
 	firstcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
@@ -332,9 +333,24 @@ class LeaveApplication(models.Model):
 		return self.user.username
 
 	def save(self, *args, **kwargs):
-		start_date = self.startdate
-		end_date = self.enddate
-		self.duration = end_date - start_date
+
+		start_date = self.startdate.day
+		end_date = self.enddate.day
+		
+		if self.starttime == None and self.endtime == None:
+			self.duration = end_date - start_date + 1
+			print('no time')
+		elif self.starttime != None and self.endtime != None:
+			start_time = self.starttime.hour + self.starttime.minute/60
+			end_time = self.endtime.hour + self.endtime.minute/60
+			self.duration = end_date - start_date + (end_time-start_time)/8
+			print('have time')
+		# print(end_date)
+
+		# timediff =  end_time - start_time
+		# print(timediff)
+		
+		
 		return super(LeaveApplication, self).save(*args, **kwargs)
 
 	def get_absolute_url(self):

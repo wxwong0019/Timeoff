@@ -124,8 +124,9 @@ def teacherapply(request):
 			a_form.save()
 
 			messages.success(request, f'Teacher timeoff applied')
-
 			return redirect('success')
+		else:
+			messages.warning(request, f'Start date/time must be less than or equal to End date/time!!!')
 	else:
 		form = TeacherApplyForm()
 		
@@ -147,11 +148,14 @@ def supervisorapply(request, *args, **kwargs):
 			p = pickform.save(commit=False)
 			startdate = form.cleaned_data.get('startdate')
 			enddate = form.cleaned_data.get('enddate')
+			starttime = form.cleaned_data.get('starttime')
+			endtime = form.cleaned_data.get('endtime')
 			reason = form.cleaned_data.get('reason')
+			teachertimeofftype = form.cleaned_data.get('teachertimeofftype')
 			alluser = pickform.cleaned_data.get('pickuser')
 			print(alluser)
 			for stuff in alluser:
-				f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, reason=reason, user=stuff)
+				f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, reason=reason, user=stuff)
 				f.save()			
 				messages.success(request, f'supervisor timeoff applied')				
 			return redirect('success')
@@ -322,7 +326,7 @@ def papprove(request, myid):
 				else:
 					u_form.save()
 					messages.success(request, f'viceprincipal DONE')
-					# return redirect('success')		
+					return redirect('plistview')		
 
 		elif u_form.is_valid() and obj.user.is_teacher:
 				if obj.teachertimeofftype == 'Casual Leave':
@@ -342,7 +346,7 @@ def papprove(request, myid):
 				else:
 					u_form.save()
 					messages.success(request, f'teacher DONE')
-					# return redirect('success')	
+					return redirect('plistview')
 			
 	else:
 		u_form = FinalValidate(instance=obj)
