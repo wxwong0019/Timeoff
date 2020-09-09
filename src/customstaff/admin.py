@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from .models import User, TeachingStaffDetail, NonTeachingStaffDetail, SupervisorDetail,VicePrincipalDetail, LeaveApplication
+from .models import User, TeachingStaffDetail, NonTeachingStaffDetail, SupervisorDetail,VicePrincipalDetail, LeaveApplication, IncrementAll
 from django.contrib.auth.admin import UserAdmin
 
 
@@ -19,3 +19,4 @@ admin.site.register(NonTeachingStaffDetail)
 admin.site.register(SupervisorDetail)
 admin.site.register(LeaveApplication)
 admin.site.register(VicePrincipalDetail)
+admin.site.register(IncrementAll)

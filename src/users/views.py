@@ -12,7 +12,8 @@ from .forms import(
 	SecondValidate,
 	FirstValidate,
 	FinalValidate,
-	PickerForm
+	PickerForm,
+	IncrementAllForm
 	) 
 from customstaff.models import (
 	User, 
@@ -24,7 +25,8 @@ from customstaff.models import (
 	SupervisorDetail, 
 	VicePrincipalDetail, 
 	PrincipalDetail,
-	Picker
+	Picker,
+	IncrementAll
 	)
 # Create your views here.
 # def register(request):
@@ -164,6 +166,59 @@ def supervisorapply(request, *args, **kwargs):
 		pickform = PickerForm()
 
 	return render(request, "users/apply.html", {'form':form, 'pickform':pickform})
+
+
+@login_required
+def incrementallview(request, *args, **kwargs):
+	
+	if request.method == 'POST':
+
+		form = IncrementAllForm(request.POST)
+		userall = User.objects.exclude(is_principal = True)
+		# userid = list(User.objects.filter(username=request.POST['pickuser']).values('pickuser'))
+		if form.is_valid():		
+			f = form.save(commit=False)
+						
+			for stuff in userall:
+				if stuff.is_supervisor and stuff.is_teacher:
+					supervisordetail = SupervisorDetail.objects.get(user=stuff)
+					supervisordetail.sickleave = supervisordetail.sickleave + supervisordetail.increment
+					created_at = form.cleaned_data.get('created_at')
+
+					f = IncrementAll.objects.create(created_at=created_at, added = supervisordetail.increment, user = stuff)
+					supervisordetail.save()
+					f.save()			
+				elif stuff.is_viceprincipal and stuff.is_teacher:
+					viceprincipaldetail = VicePrincipalDetail.objects.get(user=stuff)
+					viceprincipaldetail.sickleave = viceprincipaldetail.sickleave + viceprincipaldetail.increment
+					created_at = form.cleaned_data.get('created_at')
+					f = IncrementAll.objects.create(created_at=created_at, added = viceprincipaldetail.increment, user = stuff)
+					viceprincipaldetail.save()
+					f.save()			
+					messages.success(request, f'Timeoff added for all users')
+				elif stuff.is_nonteacher:
+					nonteacherdetail = NonTeachingStaffDetail.objects.get(user=stuff)
+					nonteacherdetail.sickleave = nonteacherdetail.sickleave + nonteacherdetail.increment
+					created_at = form.cleaned_data.get('created_at')
+					f = IncrementAll.objects.create(created_at=created_at, added = nonteacherdetail.increment, user = stuff)
+					nonteacherdetail.save()
+					f.save()			
+					messages.success(request, f'Timeoff added for all users')
+				elif stuff.is_teacher:
+					teacherdetail = get_object_or_404(TeachingStaffDetail, user = stuff)
+					teacherdetail.sickleave = teacherdetail.sickleave + teacherdetail.increment
+					created_at = form.cleaned_data.get('created_at')
+					f = IncrementAll.objects.create(created_at=created_at, added = teacherdetail.increment, user = stuff)
+					teacherdetail.save()
+					f.save()			
+					messages.success(request, f'Timeoff added for all users')	
+
+			return redirect('success')
+	else:
+		form = IncrementAllForm(request.POST)
+		
+
+	return render(request, "users/incrementall.html", {'form':form})
 
 def success(req):
 	obj = LeaveApplication.objects.all()

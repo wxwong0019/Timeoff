@@ -209,7 +209,7 @@ class TeachingStaffDetail(models.Model):
 	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	firstday = models.DateField(default=timezone.now())
-
+	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	is_teacher = models.BooleanField('teacher status', default=True)
 	is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
 	is_principal = models.BooleanField('Principal status', default=False)
@@ -220,8 +220,8 @@ class NonTeachingStaffDetail(models.Model):
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	compensatedleave = models.DecimalField(_("Compensated Leave Available Hours"),max_digits = 4, decimal_places = 1, default = 0)
-	duration = models.DecimalField(_("Duration"),max_digits = 4, decimal_places = 1, default = 0)
-
+	# duration = models.DecimalField(_("Duration"),max_digits = 4, decimal_places = 1, default = 0)
+	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	firstday = models.DateField(default=timezone.now())
 	is_nonteacher = models.BooleanField('Non teaching staff status', default=True)
 
@@ -236,7 +236,7 @@ class SupervisorDetail(models.Model):
 	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	firstday = models.DateField(default=timezone.now())
-
+	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	is_supervisor = models.BooleanField('Supervisor status', default=True)
 	is_teacher = models.BooleanField('Teacher status', default=True)
 
@@ -246,6 +246,7 @@ class VicePrincipalDetail(models.Model):
 	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	firstday = models.DateField(default=timezone.now())
+	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	is_teacher = models.BooleanField('teacher status', default=True)
 	is_viceprincipal = models.BooleanField('VicePrincipal status', default=True)
 	allvp = models.ManyToManyField(VicePrincipal, related_name='allvp')
@@ -322,6 +323,7 @@ class LeaveApplication(models.Model):
 	finalduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 0, default = 0)
 	finalcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+
 	# is_teacher = models.BooleanField('teacher status', default=False)
 	# is_nonteacher = models.BooleanField('Non teaching staff status', default=False)
 	# is_supervisor = models.BooleanField('Supervisor status', default=False)
@@ -359,4 +361,8 @@ class LeaveApplication(models.Model):
 class Picker(models.Model):
 	pickuser = models.ManyToManyField(User, related_name='pickuser')
 
+class IncrementAll(models.Model):
+	created_at = models.DateField(default=timezone.now())
+	added = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
+	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 		

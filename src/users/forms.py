@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile
-from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication,VicePrincipalDetail, Picker
+from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication,VicePrincipalDetail, Picker, IncrementAll
 from bootstrap_datepicker_plus import DatePickerInput, TimePickerInput, DateTimePickerInput, MonthPickerInput, YearPickerInput
 from django.core.exceptions import ValidationError
 from django.contrib import messages
@@ -45,7 +45,7 @@ class NonTeachingStaffUpdateForm(forms.ModelForm):
 
 	class Meta:
 		model = NonTeachingStaffDetail
-		fields = ['sickleave', 'annualleave', 'compensatedleave', 'duration']
+		fields = ['sickleave', 'annualleave', 'compensatedleave']
 
 	# def clean(self):
  #    	modify = self.cleaned_data['duration']
@@ -256,3 +256,18 @@ class FinalValidate(forms.ModelForm):
 			'finalcomment',
 		]
 
+class IncrementAllForm(forms.ModelForm):
+	created_at = forms.DateField(label= 'Date Added',widget=DatePickerInput(
+		options={
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'placeholder' : "Pick a Date!",
+			 })
+			)
+	class Meta:
+			model = IncrementAll
+			fields = [
+				'created_at',
+
+			]

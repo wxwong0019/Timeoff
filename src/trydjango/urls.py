@@ -51,6 +51,7 @@ urlpatterns = [
     path('<int:myid>/papprovedecided/', user_views.papprovedecided, name='papprovedecided'),
     path('userlistview/', user_views.userlistview, name='userlistview'),
     path('<int:myid>/userdetailview/', user_views.userdetailview, name='userdetailview'),
+    path('incrementallview/', user_views.incrementallview, name='incrementallview'),
 ]
 
 
