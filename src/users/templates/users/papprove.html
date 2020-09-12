@@ -35,6 +35,10 @@
           {% endif %}
           <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
           <p class="text-secondary">End Date : {{ obj.enddate }}</p>
+          {% if obj.starttime != None and obj.endtime != None%}
+          <p class="text-secondary">Start Time : {{ obj.starttime }}</p>
+          <p class="text-secondary">End Time : {{ obj.endtime }}</p>
+          {% endif %}
           <p class="text-secondary">Estimated Duration : {{ obj.duration }}</p>
           <p class="text-secondary">Applicant Reason : {{ obj.reason }}</p><br>
           <h4 class="account-heading">Supervisor Validation:</h4>          

@@ -3,15 +3,15 @@
 {% block content %}
 
 {{ object_list }}
-<table style="width:35%">
-<tr>
+<table style="width:70%">
+<tr class = 'table'>
     <th>Status</th>
     <th>Username</th>
     <th>Leave Detail</th>
-  </tr>
+</tr>
 {% for stuff in objec_list %}
 	{% if stuff.firststatus == "Pending" %}
-		<tr>
+		<tr class = 'table'>
 
 			<td> {{ stuff.firststatus }}</td>
 			<td> {{ stuff.user.username }} </td>

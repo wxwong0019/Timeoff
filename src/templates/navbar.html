@@ -6,7 +6,28 @@
 	<div class="collapse navbar-collapse" id="navbarNav" >
 
 		<ul class="navbar-nav">
-		{% if user.is_nonteacher %}
+		
+		{% if user.is_secretary %}
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'nonteacherapply' %}">Apply for TimeOff</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'profile' %}">Profile</a>
+		</li>
+		<li class="nav-item dropdown">
+		 <a class="nav-link  dropdown-toggle" href="#" data-toggle="dropdown" data-hover="dropdown"> Leave Increment </a>
+			<ul class="dropdown-menu">
+				<li><a class="dropdown-item" href="{% url 'incrementlistview' %}">Monthly Increment Record</a></li>
+				<li><a class="dropdown-item" href="{% url 'incrementallview' %}">Monthly Increment</a></li>
+			</ul>
+		</li>
+			<li class="nav-item">
+				<a class="nav-link " href="{% url 'userlistview' %}">View Application</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link " href="{% url 'logout' %}">Logout</a>
+			</li>
+		{% elif user.is_nonteacher %}
 		<li class="nav-item">
 			<a class="nav-link" href="{% url 'nonteacherapply' %}">Apply for TimeOff</a>
 		</li>
@@ -31,7 +52,13 @@
 				<li><a class="dropdown-item" href="{% url 'plistviewdecided' %}">Processed Application</a></li>
 			</ul>
 		</li>
-
+		<li class="nav-item dropdown">
+		 <a class="nav-link  dropdown-toggle" href="#" data-toggle="dropdown" data-hover="dropdown"> Leave Increment </a>
+			<ul class="dropdown-menu">
+				<li><a class="dropdown-item" href="{% url 'incrementlistview' %}">Monthly Increment Record</a></li>
+				<li><a class="dropdown-item" href="{% url 'incrementallview' %}">Monthly Increment</a></li>
+			</ul>
+		</li>
 
 		<li class="nav-item">
 			<a class="nav-link" href="{% url 'profile' %}">Profile</a>

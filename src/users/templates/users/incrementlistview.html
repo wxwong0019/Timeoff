@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{{ object_list }}
+<h4>Monthly Increment record</h4>
+<table style="width:70%">
+<tr class = 'table'>
+    <th>Date Created</th>
+    <th>Username</th>
+    <th>Incremented</th>
+  </tr>
+{% for stuff in objec_list %}
+		<tr class = 'table'>
+			<td> {{ stuff.created_at }}</td>
+			<td> {{ stuff.user}} </td>
+			<td>{{ stuff.added}}</td>
+		</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}

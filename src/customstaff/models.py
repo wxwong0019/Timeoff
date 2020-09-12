@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 import datetime 
-
+import math
 class MyUserManager(BaseUserManager):
 	def create_user(self, email, username, password=None):
 		"""
@@ -52,6 +52,7 @@ class User(AbstractBaseUser):
 	is_supervisor = models.BooleanField('Supervisor status', default=False)
 	is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
 	is_principal = models.BooleanField('Principal status', default=False)
+	is_secretary = models.BooleanField('Secretary status', default=False)
 
 	REQUIRED_FIELDS = ['username']
 	objects = MyUserManager()
@@ -220,11 +221,11 @@ class NonTeachingStaffDetail(models.Model):
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	compensatedleave = models.DecimalField(_("Compensated Leave Available Hours"),max_digits = 4, decimal_places = 1, default = 0)
-	# duration = models.DecimalField(_("Duration"),max_digits = 4, decimal_places = 1, default = 0)
+	ratio = models.DecimalField(_("Ratio"),max_digits = 2, decimal_places = 1, default = 0)
 	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	firstday = models.DateField(default=timezone.now())
 	is_nonteacher = models.BooleanField('Non teaching staff status', default=True)
-
+	is_secretary = models.BooleanField('Secretary status', default=False)
 	# def save(self, *args, **kwargs):
 	# 	finalduration
 	# 	return super(NonTeachingStaffDetail, self).save(*args, **kwargs)
@@ -320,7 +321,7 @@ class LeaveApplication(models.Model):
 	secondstatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
 	secondcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	finalstatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
-	finalduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 0, default = 0)
+	finalduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 0, null=True, blank=True)
 	finalcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
@@ -334,24 +335,27 @@ class LeaveApplication(models.Model):
 	def __str__(self):
 		return self.user.username
 
+
 	def save(self, *args, **kwargs):
+		def my_round(x):
+			return math.ceil(x*4)/4
 
 		start_date = self.startdate.day
 		end_date = self.enddate.day
 		
 		if self.starttime == None and self.endtime == None:
-			self.duration = end_date - start_date + 1
+			dur = end_date - start_date + 1
 			print('no time')
 		elif self.starttime != None and self.endtime != None:
 			start_time = self.starttime.hour + self.starttime.minute/60
 			end_time = self.endtime.hour + self.endtime.minute/60
-			self.duration = end_date - start_date + (end_time-start_time)/8
+			dur = end_date - start_date + (end_time-start_time)/8
 			print('have time')
-		# print(end_date)
-
-		# timediff =  end_time - start_time
-		# print(timediff)
 		
+		if self.nonteachertimeofftype == 'Over Time':
+			self.duration = -(self.starttime.hour + self.starttime.minute/60) + (self.endtime.hour + self.endtime.minute/60)
+		else:
+			self.duration = my_round(dur)
 		
 		return super(LeaveApplication, self).save(*args, **kwargs)
 

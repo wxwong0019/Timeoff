@@ -8,20 +8,36 @@
 <table style="width:90%">
 <tr class = 'table'>
 
-    <th>Name</th>
-    <th>nonteachertimeofftype</th>
-
- 
-
+    <th>Apply Date/Time</th>
+    <th>Leave Type</th>
+    <th>Start/End Date</th>
+    <th>Duration</th>
+    <th>Direct Supervisor</th>
+    <th>Vice Principal Decision</th>
+    <th>Principal Decision</th>
   </tr>
 {% for stuff in applicant %}
-
+	{% if stuff.user.is_nonteacher %}
 		<tr class = 'table'>
-			<td>{{ stuff.user  }}</td>
-			<td>{{ stuff.nonteachertimeofftype  }}</td>
+			<td> {{ stuff.created_at }}</td>
+			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+			<td> {{ stuff.duration }}
+			<td> {{ stuff.firststatus }}</td>
+			<td> {{ stuff.secondstatus }}</td>
+			<td> {{ stuff.finalstatus }}</td>
 		</tr>
-
-
+	{% else %}
+		<tr class = 'table'>
+			<td> {{ stuff.created_at }}</td>
+			<td> {{ stuff.teachertimeofftype }}</td>
+			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+			<td> {{ stuff.duration }}
+			<td> {{ stuff.firststatus }}</td>
+			<td> {{ stuff.secondstatus }}</td>
+			<td> {{ stuff.finalstatus }}</td>
+		</tr>
+	{% endif %}
 {% endfor %}
 
 </table>

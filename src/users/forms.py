@@ -247,13 +247,13 @@ class SecondValidate(forms.ModelForm):
 		]
 
 class FinalValidate(forms.ModelForm):
-	# finalduration = DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 0, default = )
+	finalduration = forms.DecimalField(required=False,label =  "Modified duration (Optional)", widget=forms.TextInput(attrs={'placeholder' : "Hour for OT, Days for Leave"}) )
 	class Meta:
 		model = LeaveApplication
 		fields = [
 			'finalstatus',
-			'finalduration',
 			'finalcomment',
+			'finalduration',
 		]
 
 class IncrementAllForm(forms.ModelForm):
