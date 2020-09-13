@@ -48,6 +48,17 @@
           <p class="text-secondary">Principal comment : {{ obj.finalcomment }}</p><br>
         </div>
       </div>
+      <form method = 'POST' enctype='multipart/form-data' onsubmit="return confirm('Just want to make sure DID YOU DOUBLE CHECK?');"> 
+    {% csrf_token %}
+    <fieldset class='form-group'>
+      <legend class='border-bottom mb-4'> Revoke Application </legend>
+      {{ u_form|crispy }}
+
+    </fieldset>
+    <div class='form-group'>
+      <button type="submit" class="btn btn-primary" onclick="return confirm('*** WARNING : Check your entry as this is an irreversible action. Do you really want to submit? ***');" >Revoke</button>
+    </div>
+  </form>
 
 
   </div>

@@ -13,7 +13,8 @@ from .forms import(
 	FirstValidate,
 	FinalValidate,
 	PickerForm,
-	IncrementAllForm
+	IncrementAllForm,
+	CancelForm
 	) 
 from customstaff.models import (
 	User, 
@@ -341,6 +342,8 @@ def papprove(request, myid):
 										applicant.annualleave = applicant.annualleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -348,6 +351,8 @@ def papprove(request, myid):
 										applicant.annualleave = applicant.annualleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 
@@ -357,6 +362,8 @@ def papprove(request, myid):
 										applicant.sickleave = applicant.sickleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -364,6 +371,8 @@ def papprove(request, myid):
 										applicant.sickleave = applicant.sickleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 								elif obj.nonteachertimeofftype == 'Over Time':
@@ -372,6 +381,8 @@ def papprove(request, myid):
 										applicant.compensatedleave = applicant.compensatedleave + abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -379,6 +390,8 @@ def papprove(request, myid):
 										applicant.compensatedleave = applicant.compensatedleave + abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 								else:
@@ -393,6 +406,8 @@ def papprove(request, myid):
 										applicant.casualleave = applicant.casualleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -400,6 +415,8 @@ def papprove(request, myid):
 										applicant.casualleave = applicant.casualleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 								elif obj.teachertimeofftype == 'Sick Leave':
@@ -408,6 +425,8 @@ def papprove(request, myid):
 										applicant.sickleave = applicant.sickleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -415,6 +434,8 @@ def papprove(request, myid):
 										applicant.sickleave = applicant.sickleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 								else:
@@ -429,6 +450,8 @@ def papprove(request, myid):
 										applicant.casualleave = applicant.casualleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -436,6 +459,8 @@ def papprove(request, myid):
 										applicant.casualleave = applicant.casualleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 								elif obj.teachertimeofftype == 'Sick Leave':
@@ -444,6 +469,8 @@ def papprove(request, myid):
 										applicant.sickleave = applicant.sickleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -451,6 +478,8 @@ def papprove(request, myid):
 										applicant.sickleave = applicant.sickleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')	
 								else:
@@ -465,6 +494,8 @@ def papprove(request, myid):
 										applicant.casualleave = applicant.casualleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -472,6 +503,8 @@ def papprove(request, myid):
 										applicant.casualleave = applicant.casualleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 
@@ -481,6 +514,8 @@ def papprove(request, myid):
 										applicant.sickleave = applicant.sickleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 									else:
@@ -488,6 +523,8 @@ def papprove(request, myid):
 										applicant.sickleave = applicant.sickleave - abs(modify)
 										u_form.save()
 										applicant.save()
+										obj.finalduration = modify
+										obj.save()
 										messages.success(request, f'non teacher DONE')
 										return redirect('plistview')
 								else:
@@ -499,6 +536,7 @@ def papprove(request, myid):
 				u_form.save()
 				messages.success(request, f'LeaveApplication Denied')
 				return redirect('plistview')
+		
 	else:
 		u_form = FinalValidate(instance=obj)
 
@@ -534,10 +572,100 @@ def papprovedecided(request, myid):
 		applicant = VicePrincipalDetail.objects.get(user = userid)
 	else:
 		applicant = TeachingStaffDetail.objects.get(user = userid)
+	if request.method == 'POST' :
+		u_form = CancelForm(request.POST, instance=obj)
+		if u_form.is_valid() and obj.user.is_nonteacher:
+			if obj.nonteachertimeofftype == 'Annual Leave':
+				applicant.annualleave = applicant.annualleave + abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
 
+			elif obj.nonteachertimeofftype == 'Sick Leave':
+				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+			elif obj.nonteachertimeofftype == 'Over Time':
+				applicant.compensatedleave = applicant.compensatedleave - abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+			else:
+				u_form.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+		elif u_form.is_valid() and obj.user.is_supervisor:
+			if obj.teachertimeofftype == 'Casual Leave':
+				applicant.casualleave = applicant.casualleave + abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+			elif obj.teachertimeofftype == 'Sick Leave':
+				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+			else:
+				u_form.save()
+				messages.success(request, f'supervisor DONE')
+				return redirect('plistview')	
+
+		elif u_form.is_valid() and obj.user.is_viceprincipal:
+			if obj.teachertimeofftype == 'Casual Leave':
+				applicant.casualleave = applicant.casualleave + abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+			elif obj.teachertimeofftype == 'Sick Leave':
+				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+			else:
+				u_form.save()
+				messages.success(request, f'supervisor DONE')
+				return redirect('plistview')		
+
+		elif u_form.is_valid() and obj.user.is_teacher:
+			if obj.teachertimeofftype == 'Casual Leave':
+				applicant.casualleave = applicant.casualleave + abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+			elif obj.teachertimeofftype == 'Sick Leave':
+				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
+				u_form.save()
+				applicant.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('plistview')
+			else:
+				u_form.save()
+				messages.success(request, f'supervisor DONE')
+				return redirect('plistview')	
+	else:
+		u_form = CancelForm(instance=obj)
 	return render(request, "users/papprovedecided.html", {
 			'obj' : obj, 
-			'applicant' : applicant
+			'applicant' : applicant,
+			'u_form' : u_form
 			})
 
 @login_required

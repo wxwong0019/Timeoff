@@ -271,3 +271,10 @@ class IncrementAllForm(forms.ModelForm):
 				'created_at',
 
 			]
+class CancelForm(forms.ModelForm):
+	finalcomment = forms.DecimalField(required=False,label =  "Cancel reason", widget=forms.TextInput(attrs={'placeholder' : "Reason"}) )
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'finalcomment',
+		]

@@ -39,7 +39,12 @@
           <p class="text-secondary">Start Time : {{ obj.starttime }}</p>
           <p class="text-secondary">End Time : {{ obj.endtime }}</p>
           {% endif %}
-          <p class="text-secondary">Estimated Duration : {{ obj.duration }}</p>
+          
+          {% if obj.nonteachertimeofftype == 'Over Time' %}
+            <p class="text-secondary">Estimated Hour (hrs): {{ obj.duration }}</p>
+          {% else %}
+            <p class="text-secondary">Estimated Day (days): {{ obj.duration }}</p>
+          {% endif %}
           <p class="text-secondary">Applicant Reason : {{ obj.reason }}</p><br>
           <h4 class="account-heading">Supervisor Validation:</h4>          
           <p class="text-secondary">Supervisor Approval Status : {{ obj.firststatus }}</p>

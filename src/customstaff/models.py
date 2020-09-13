@@ -299,11 +299,13 @@ class LeaveApplication(models.Model):
 	pending = 'Pending'
 	approved = 'Approved'
 	denied = 'Denied'
+	canceled = 'Canceled'
 
 	STATUS_CHOICES = [
 		(pending, 'pending'),
 		(approved, 'approved'),
 		(denied, 'denied'),
+		(canceled, 'canceled'),
 	]
 
 	created_at = models.DateTimeField(auto_now_add=True, blank=True)
@@ -345,15 +347,17 @@ class LeaveApplication(models.Model):
 		
 		if self.starttime == None and self.endtime == None:
 			dur = end_date - start_date + 1
+			hr = (end_date - start_date + 1) * 24
 			print('no time')
 		elif self.starttime != None and self.endtime != None:
 			start_time = self.starttime.hour + self.starttime.minute/60
 			end_time = self.endtime.hour + self.endtime.minute/60
 			dur = end_date - start_date + (end_time-start_time)/8
+			hr = (end_date - start_date)*24 + end_time-start_time
 			print('have time')
 		
 		if self.nonteachertimeofftype == 'Over Time':
-			self.duration = -(self.starttime.hour + self.starttime.minute/60) + (self.endtime.hour + self.endtime.minute/60)
+			self.duration = hr
 		else:
 			self.duration = my_round(dur)
 		
