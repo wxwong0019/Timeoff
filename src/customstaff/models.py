@@ -215,13 +215,15 @@ class TeachingStaffDetail(models.Model):
 	is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
 	is_principal = models.BooleanField('Principal status', default=False)
 
+	def __str__(self):
+		return self.user
 
 class NonTeachingStaffDetail(models.Model):
 	user = models.OneToOneField(NonTeachingStaff, on_delete=models.CASCADE)
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	compensatedleave = models.DecimalField(_("Compensated Leave Available Hours"),max_digits = 4, decimal_places = 1, default = 0)
-	ratio = models.DecimalField(_("Ratio"),max_digits = 2, decimal_places = 1, default = 0)
+	ratio = models.DecimalField(_("Non-Teacher Ratio"),max_digits = 2, decimal_places = 1, default = 0)
 	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	firstday = models.DateField(default=timezone.now())
 	is_nonteacher = models.BooleanField('Non teaching staff status', default=True)
@@ -259,11 +261,13 @@ class PrincipalDetail(models.Model):
 
 class LeaveApplication(models.Model):
 	sickleave = 'Sick Leave'
-	officialleave = 'Official Leave'
+	officialleave_inschool= 'Official Leave (In School)'
+	officialleave_outside= 'Official Leave (Outside)'
 	casualleave = 'Casual Leave'
 	annualleave = 'Annual Leave'
 	specialtuberculosisleave = 'Special Tuberculosis Leave'
 	maternalleave = 'Maternal Leave'
+	nopayleave = 'No Pay Leave'
 	paternityleave = 'Paternity Leave'
 	studyleave = 'Study Leave'
 	jurorsorwitnesses = 'Jurors or Witnesses'
@@ -273,10 +277,12 @@ class LeaveApplication(models.Model):
 
 	TEACHER_TIMEOFF_CHOICES = [
 		(sickleave, 'Sick Leave'),
-		(officialleave, 'Official Leave'),
+		(officialleave_inschool, 'Official Leave (In School)'),
+		(officialleave_outside, 'Official Leave (Outside)'),
 		(casualleave, 'Casual Leave'),
 		(specialtuberculosisleave, 'Special Tuberculosis Leave'),
 		(maternalleave, 'Maternal Leave'),
+		(nopayleave , 'No Pay Leave'),
 		(paternityleave, 'Paternity Leave'),
 		(studyleave, 'Study Leave'),
 		(jurorsorwitnesses, 'Jurors or Witnesses'),
@@ -286,31 +292,47 @@ class LeaveApplication(models.Model):
 
 	NONTEACHER_TIMEOFF_CHOICES = [
 		(sickleave, 'Sick Leave'),
-		(officialleave, 'Official Leave'),
+		(officialleave_inschool, 'Official Leave (In School)'),
+		(officialleave_outside, 'Official Leave (Outside)'),
 		(annualleave, 'Annual Leave'),
 		(overtime, 'Over Time'),		
 		(specialtuberculosisleave, 'Special Tuberculosis Leave'),
 		(maternalleave, 'Maternal Leave'),
+		(nopayleave , 'No Pay Leave'),
 		(paternityleave, 'Paternity Leave'),
 		(jurorsorwitnesses, 'Jurors or Witnesses'),
 		(others, 'Others'),
 	]
 
+	NONTEACHER_CHANGE_TIMEOFF_CHOICES = [
+		(annualleave, 'Annual Leave'),
+		(overtime, 'Over Time'),		
+		(nopayleave , 'No Pay Leave'),
+	]
+
+	TEACHER_CHANGE_TIMEOFF_CHOICES = [
+		(overtime, 'Over Time'),		
+		(nopayleave , 'No Pay Leave'),
+	]
+
 	pending = 'Pending'
 	approved = 'Approved'
 	denied = 'Denied'
-	canceled = 'Canceled'
+	# action_required = 'Action Required'
+	# canceled = 'Canceled'
 
 	STATUS_CHOICES = [
-		(pending, 'pending'),
-		(approved, 'approved'),
-		(denied, 'denied'),
-		(canceled, 'canceled'),
+		(pending, 'Pending'),
+		(approved, 'Approved'),
+		(denied, 'Denied'),
+		# (action_required, 'Action Required')
 	]
 
 	created_at = models.DateTimeField(auto_now_add=True, blank=True)
 	teachertimeofftype = models.CharField(_("Type of Leave"),max_length= 100,choices = TEACHER_TIMEOFF_CHOICES, default=sickleave)
 	nonteachertimeofftype = models.CharField(_("Type of Leave"),max_length= 100,choices = NONTEACHER_TIMEOFF_CHOICES, default=sickleave)
+	nonteacherchangetimeofftype = models.CharField(_("Change Leave Type"),max_length= 100,choices = NONTEACHER_CHANGE_TIMEOFF_CHOICES, null=True, blank=True)
+	teacherchangetimeofftype = models.CharField(_("Change Leave Type"),max_length= 100,choices = TEACHER_CHANGE_TIMEOFF_CHOICES, null=True, blank=True)
 	startdate = models.DateField(default=timezone.now())
 	starttime = models.TimeField(default=timezone.now(), null=True)
 	enddate = models.DateField(default=timezone.now())
@@ -318,21 +340,18 @@ class LeaveApplication(models.Model):
 	duration = models.DecimalField(_("Total Days"),default = 0, max_digits = 1000, decimal_places = 2)
 	totalhr = models.DecimalField(_("Total Hours"),default = 0, max_digits = 1000, decimal_places = 0)
 	reason = models.CharField(max_length= 200, default = '')
+	file = models.FileField(null = True, blank = True)
 	firststatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
 	firstcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	secondstatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
 	secondcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	finalstatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
-	finalduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 0, null=True, blank=True)
+	finalduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 2, null=True, blank=True)
 	finalcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
-	# is_teacher = models.BooleanField('teacher status', default=False)
-	# is_nonteacher = models.BooleanField('Non teaching staff status', default=False)
-	# is_supervisor = models.BooleanField('Supervisor status', default=False)
-	# is_viceprincipal = models.BooleanField('Viceprincipal status', default=False)
-	# is_principal = models.BooleanField('Principal status', default=False)
-	# leaveoversee = models.ManyToManyField(Supervisor, related_name='leaveoversee')
+	class Meta:
+	   ordering = ['-created_at']
 
 	def __str__(self):
 		return self.user.username
@@ -367,7 +386,7 @@ class LeaveApplication(models.Model):
 		return  reverse("managerapprove", kwargs={"myid" : self.id})  #f"/timeoff/{self.id}"
 
 class Picker(models.Model):
-	pickuser = models.ManyToManyField(User, related_name='pickuser')
+	pickuser = models.ManyToManyField( User, related_name='pickuser')
 
 class IncrementAll(models.Model):
 	created_at = models.DateField(default=timezone.now())

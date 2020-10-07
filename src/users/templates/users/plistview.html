@@ -10,7 +10,8 @@
     <th>Apply Date/Time</th>
     <th>Name</th>
     <th>Leave Type</th>
-    <th>Duration</th>
+    <th>From</th>
+    <th>To</th>
     <th>Vice Principal Decision</th>
     <th>Direct Supervisor</th>
   </tr>
@@ -22,7 +23,13 @@
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
 			<td> {{ stuff.nonteachertimeofftype }}</td>
-			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+			{% if stuff.starttime == None and stuff.endtime == None %}
+				<td> {{ stuff.startdate}}</td>
+				<td> {{ stuff.enddate}}</td>
+			{% else %}
+				<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
+				<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
+			{% endif %}	
 			<td> {{ stuff.secondstatus }}</td>
 			<td> {{ stuff.firststatus }}</td>
 		</tr>
@@ -32,7 +39,13 @@
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
 			<td> {{ stuff.teachertimeofftype }}</td>
-			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+			{% if stuff.starttime == None and stuff.endtime == None %}
+				<td> {{ stuff.startdate}}</td>
+				<td> {{ stuff.enddate}}</td>
+			{% else %}
+				<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
+				<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
+			{% endif %}	
 			<td> {{ stuff.secondstatus }}</td>
 			<td> Not Applicable</td>
 		</tr>

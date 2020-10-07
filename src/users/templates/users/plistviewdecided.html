@@ -31,6 +31,24 @@
 			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
 		</tr>
 		{% endif%}
+	{% elif stuff.finalstatus == "Canceled"%}
+		{% if stuff.user.is_nonteacher %}
+		<tr class = 'table'>
+			<td> {{ stuff.finalstatus }}</td>
+			<td> {{ stuff.created_at }}</td>
+			<td> {{ stuff.user.username }} </td>
+			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+		</tr>
+		{% else %}
+		<tr class = 'table'>
+			<td> {{ stuff.finalstatus }}</td>
+			<td> {{ stuff.created_at }}</td>
+			<td> {{ stuff.user.username }} </td>
+			<td> {{ stuff.teachertimeofftype }}</td>
+			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+		</tr>
+		{% endif%}
 	{% endif%}	
 {% endfor %}
 

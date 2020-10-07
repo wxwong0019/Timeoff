@@ -10,6 +10,10 @@
         <div class="media-body">
           <h4 class="account-heading">Applicant : {{ obj.user.username }}</h4>
           <p class="text-secondary">email address : {{ obj.user.email }}</p>
+          {% if obj.file %}
+          <p class="text-secondary">File Uploaded</p>
+          <img src = '{{ obj.file.url }}' class="image"/>
+          {% endif %}
 
           {% if obj.user.is_teacher %}
             {% if obj.teachertimeofftype == 'Casual Leave' %}
@@ -59,7 +63,16 @@
     {% csrf_token %}
     <fieldset class='form-group'>
       <legend class='border-bottom mb-4'> Principal Final Validation </legend>
-      {{ u_form|crispy }}
+    {% if obj.user.is_teacher %}
+      {{ u_form.teacherchangetimeofftype|as_crispy_field }}
+    {% else %}
+      {{ u_form.nonteacherchangetimeofftype|as_crispy_field }}
+    {% endif %}
+      {{ u_form.finalstatus|as_crispy_field }}
+
+      {{ u_form.finalcomment|as_crispy_field }}
+
+      {{ u_form.finalduration|as_crispy_field }}
 
     </fieldset>
     <div class='form-group'>

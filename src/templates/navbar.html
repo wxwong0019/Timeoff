@@ -25,6 +25,9 @@
 				<a class="nav-link " href="{% url 'userlistview' %}">View Application</a>
 			</li>
 			<li class="nav-item">
+				<a class="nav-link " href="{% url 'applyforapply' %}">Sick Leave Apply for Staff</a>
+			</li>
+			<li class="nav-item">
 				<a class="nav-link " href="{% url 'logout' %}">Logout</a>
 			</li>
 		{% elif user.is_nonteacher %}
@@ -59,16 +62,15 @@
 				<li><a class="dropdown-item" href="{% url 'incrementallview' %}">Monthly Increment</a></li>
 			</ul>
 		</li>
-
 		<li class="nav-item">
-			<a class="nav-link" href="{% url 'profile' %}">Profile</a>
+			<a class="nav-link " href="{% url 'logout' %}">Logout</a>
 		</li>
-			<li class="nav-item">
-				<a class="nav-link " href="{% url 'logout' %}">Logout</a>
-			</li>
 		{% elif user.is_supervisor %}
 		<li class="nav-item">
-			<a class="nav-link" href="{% url 'supervisorapply' %}">TimeOff Apply</a>
+			<a class="nav-link" href="{% url 'teacherapply' %}">TimeOff Apply</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'supervisorapply' %}">Group Apply</a>
 		</li>
 		<li class="nav-item">
 			<a class="nav-link" href="{% url 'managerlistview' %}">Manage Application</a>
@@ -82,6 +84,9 @@
 			{% elif user.is_viceprincipal and user.is_teacher %}
 		<li class="nav-item">
 			<a class="nav-link" href="{% url 'teacherapply' %}">TimeOff Apply</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="{% url 'supervisorapply' %}">Group Apply</a>
 		</li>
 		<li class="nav-item">
 			<a class="nav-link" href="{% url 'vplistview' %}">Manage Application</a>

@@ -35,8 +35,7 @@
           {% endif %}
           <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
           <p class="text-secondary">End Date : {{ obj.enddate }}</p>
-          <p class="text-secondary">Applied Duration : {{ obj.duration }}</p>
-          <p class="text-secondary">Approved Duration : {{ obj.finalduration }}</p>
+          <p class="text-secondary">Duration : {{ obj.duration }}</p>
           <p class="text-secondary">Applicant Reason : {{ obj.reason }}</p><br>
           <h4 class="account-heading">Supervisor Validation:</h4>          
           <p class="text-secondary">Supervisor Approval Status : {{ obj.firststatus }}</p>
@@ -52,12 +51,12 @@
       <form method = 'POST' enctype='multipart/form-data' onsubmit="return confirm('Just want to make sure DID YOU DOUBLE CHECK?');"> 
     {% csrf_token %}
     <fieldset class='form-group'>
-      <legend class='border-bottom mb-4'> Revoke Application </legend>
+      <legend class='border-bottom mb-4'> upload file </legend>
       {{ u_form|crispy }}
 
     </fieldset>
     <div class='form-group'>
-      <button type="submit" class="btn btn-primary" onclick="return confirm('*** WARNING : Check your entry as this is an irreversible action. Do you really want to submit? ***');" >Revoke</button>
+      <button type="submit" class="btn btn-primary" onclick="return confirm('*** WARNING : Check your entry as this is an irreversible action. Do you really want to submit? ***');" >upload file</button>
     </div>
   </form>
 

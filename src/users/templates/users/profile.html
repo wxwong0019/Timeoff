@@ -2,98 +2,151 @@
 
 {% block content %}
 
-{% if user.is_nonteacher %}
-<h4> Profile of : {{ userid.user }}</h4><hr>
-<h5> Sick Leave Balance (days): {{ userid.sickleave }}</h5>
-<h5> Annual Leave Balance (days): {{ userid.annualleave }}</h5>
-<h5> Compensated Leave Balance (hrs): {{ userid.compensatedleave }}</h5>
-<h5> Teacher Ratio: {{ userid.ratio }}</h5><br><br>
-{% else %}
-<h4> Profile of : {{ userid.user }}</h4><hr>
-<h5> Sick Leave Balance (days): {{ userid.sickleave }}</h5>
-<h5> Casual Leave Balance (days): {{ userid.casualleave }}</h5><br><br>
-{% endif %}
-<h4>Pending Application : </h4>
-<table style="width:90%">
-<tr class = 'table'>
+<div class = 'profiledetail'>
+  {% if user.is_nonteacher %}
+  <h4> Profile of : {{ userid.user }}</h4>
+  <h5> Sick Leave Balance (days): {{ userid.sickleave }}</h5>
+  <h5> Annual Leave Balance (days): {{ userid.annualleave }}</h5>
+  <h5> Compensated Leave Balance (hrs): {{ userid.compensatedleave }}</h5>
+  <h5> Non-Teacher Ratio: {{ userid.ratio }}</h5><br><br>
+  {% else %}
+  <h4> Profile of : {{ userid.user }}</h4>
+  <h5> Sick Leave Balance (days): {{ userid.sickleave }}</h5>
+  <h5> Casual Leave Balance (days): {{ userid.casualleave }}</h5><br><br>
+  {% endif %}
+</div>
+<hr>
+<div class = 'profileapplication'>
 
-    <th>Apply Date/Time</th>
-    <th>Leave Type</th>
-    <th>Start/End Date</th>
-    <th>Duration</th>
-    <th>Direct Supervisor</th>
-    <th>Vice Principal Decision</th>
-    <th>Principal Decision</th>
-  </tr>
-{% for stuff in applicant %}
-  {% if stuff.finalstatus == "Pending" %}
-  {% if stuff.user.is_nonteacher %}
-    
+  <h4>Pre-Approved Application : </h4>
+  <table style="width:90%">
+  <tr class = 'table'>
+
+      <th>Apply Date/Time</th>
+      <th>Leave Type</th>
+      <th>Start/End Date</th>
+      <th>Duration</th>
+      <th>Direct Supervisor</th>
+      <th>Vice Principal Decision</th>
+      <th>Principal Decision</th>
+      <th>Detail</th>
+    </tr>
+  {% for stuff in applicant %}
+    {% if stuff.finalstatus == "Action Required" %}
+    {% if stuff.user.is_nonteacher %}
+      
+        <tr class = 'table'>
+          <td> {{ stuff.created_at }}</td>
+          <td> {{ stuff.nonteachertimeofftype }}</td>
+          <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+          <td> {{ stuff.duration }}
+          <td> {{ stuff.firststatus }}</td>
+          <td> {{ stuff.secondstatus }}</td>
+          <td> {{ stuff.finalstatus }}</td>
+          <td><a href = "{% url 'profileapprove' myid=stuff.id %}"> Please</a></td>
+        </tr>
+    {% else %}
       <tr class = 'table'>
         <td> {{ stuff.created_at }}</td>
-        <td> {{ stuff.nonteachertimeofftype }}</td>
+        <td> {{ stuff.teachertimeofftype }}</td>
         <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
         <td> {{ stuff.duration }}
         <td> {{ stuff.firststatus }}</td>
         <td> {{ stuff.secondstatus }}</td>
         <td> {{ stuff.finalstatus }}</td>
+        <td><a href = "{% url 'profileapprove' myid=stuff.id %}"> Please</a></td>
       </tr>
-  {% else %}
-    <tr class = 'table'>
-      <td> {{ stuff.created_at }}</td>
-      <td> {{ stuff.teachertimeofftype }}</td>
-      <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-      <td> {{ stuff.duration }}
-      <td> {{ stuff.firststatus }}</td>
-      <td> {{ stuff.secondstatus }}</td>
-      <td> {{ stuff.finalstatus }}</td>
+    {% endif %}
+    {% endif %}
+  {% endfor %}
+  </table><br><br>
+
+  <h4>Pending Application : </h4>
+  <table style="width:90%">
+  <tr class = 'table'>
+
+      <th>Apply Date/Time</th>
+      <th>Leave Type</th>
+      <th>Start/End Date</th>
+      <th>Duration</th>
+      <th>Direct Supervisor</th>
+      <th>Vice Principal Decision</th>
+      <th>Principal Decision</th>
+      <th>Detail</th>
     </tr>
-  {% endif %}
-  {% endif %}
-{% endfor %}
-</table><br><br>
-
-<h4>Final Decision : </h4>
-<table style="width:90%">
-<tr class = 'table'>
-
-    <th>Apply Date/Time</th>
-    <th>Leave Type</th>
-    <th>Start/End Date</th>
-    <th>Duration</th>
-    <th>Direct Supervisor</th>
-    <th>Vice Principal Decision</th>
-    <th>Principal Decision</th>
-    <th>Remarks</th>
-  </tr>
-{% for stuff in applicant %}
-  {% if stuff.finalstatus == "Approved" or stuff.finalstatus == "Denied"%}
-  {% if stuff.user.is_nonteacher %}
-    
+  {% for stuff in applicant %}
+    {% if stuff.finalstatus == "Pending" %}
+    {% if stuff.user.is_nonteacher %}
+      
+        <tr class = 'table'>
+          <td> {{ stuff.created_at }}</td>
+          <td> {{ stuff.nonteachertimeofftype }}</td>
+          <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+          <td> {{ stuff.duration }}
+          <td> {{ stuff.firststatus }}</td>
+          <td> {{ stuff.secondstatus }}</td>
+          <td> {{ stuff.finalstatus }}</td>
+          <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.finalstatus }}</a></td>
+        </tr>
+    {% else %}
       <tr class = 'table'>
         <td> {{ stuff.created_at }}</td>
-        <td> {{ stuff.nonteachertimeofftype }}</td>
+        <td> {{ stuff.teachertimeofftype }}</td>
         <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
         <td> {{ stuff.duration }}
         <td> {{ stuff.firststatus }}</td>
         <td> {{ stuff.secondstatus }}</td>
         <td> {{ stuff.finalstatus }}</td>
+        <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.finalstatus }}</a></td>
       </tr>
-  {% else %}
-    <tr class = 'table'>
-      <td> {{ stuff.created_at }}</td>
-      <td> {{ stuff.teachertimeofftype }}</td>
-      <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-      <td> {{ stuff.duration }}
-      <td> {{ stuff.firststatus }}</td>
-      <td> {{ stuff.secondstatus }}</td>
-      <td> {{ stuff.finalstatus }}</td>
-    </tr>
-  {% endif %}
-  {% endif %}
-{% endfor %}
-</table>
+    {% endif %}
+    {% endif %}
+  {% endfor %}
+  </table><br><br>
 
+  <h4>Final Decision : </h4>
+  <table style="width:90%">
+  <tr class = 'table'>
+
+      <th>Apply Date/Time</th>
+      <th>Leave Type</th>
+      <th>Start/End Date</th>
+      <th>Duration</th>
+      <th>Direct Supervisor</th>
+      <th>Vice Principal Decision</th>
+      <th>Principal Decision</th>
+      <th>Remarks</th>
+    </tr>
+  {% for stuff in applicant %}
+    {% if stuff.finalstatus == "Approved" or stuff.finalstatus == "Denied" or stuff.finalstatus == "Canceled" %}
+    {% if stuff.user.is_nonteacher %}
+      
+        <tr class = 'table'>
+          <td> {{ stuff.created_at }}</td>
+          <td> {{ stuff.nonteachertimeofftype }}</td>
+          <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+          <td> {{ stuff.finalduration }}
+          <td> {{ stuff.firststatus }}</td>
+          <td> {{ stuff.secondstatus }}</td>
+          <td> {{ stuff.finalstatus }}</td>
+          <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.finalstatus }}</a></td>
+        </tr>
+    {% else %}
+      <tr class = 'table'>
+        <td> {{ stuff.created_at }}</td>
+        <td> {{ stuff.teachertimeofftype }}</td>
+        <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
+        <td> {{ stuff.finalduration }}
+        <td> {{ stuff.firststatus }}</td>
+        <td> {{ stuff.secondstatus }}</td>
+        <td> {{ stuff.finalstatus }}</td>
+        <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.finalstatus }}</a></td>
+      </tr>
+    {% endif %}
+    {% endif %}
+  {% endfor %}
+  </table>
+</div>
 
     
 {% endblock %}
