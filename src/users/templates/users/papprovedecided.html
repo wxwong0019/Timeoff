@@ -12,31 +12,46 @@
           <p class="text-secondary">email address : {{ obj.user.email }}</p>
 
           {% if obj.user.is_teacher %}
+            <p class="text-secondary">Teacher Applied For : {{ obj.teachertimeofftype }}</p>
+            <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
+            <p class="text-secondary">End Date : {{ obj.enddate }}</p>
+            <p class="text-secondary">Applied Duration : {{ obj.duration }}</p>
             {% if obj.teachertimeofftype == 'Casual Leave' %}
-              <p class="text-secondary">Teacher Type of Leave : {{ obj.teachertimeofftype }}</p>
               <p class="text-secondary">Casual leave : {{ applicant.casualleave }}</p>
             {% elif obj.teachertimeofftype == 'Sick Leave'%}
-              <p class="text-secondary">Teacher Type of Leave : {{ obj.teachertimeofftype }}</p>
               <p class="text-secondary">Sick leave : {{ applicant.sickleave }}</p>
-            
             {% endif %}
+            <hr>
+            <p class="text-secondary">Approved Duration : {{ obj.finalduration }}</p>
+            {% if obj.teacherchangetimeofftype == 'No Pay Leave' %}
+              <p class="text-secondary">* Changed To : No Pay Leave</p>
+            {% endif %}
+
               
           {% else %}
+            <p class="text-secondary">Non Teacher Applied For : {{ obj.nonteachertimeofftype }}</p>
+            <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
+            <p class="text-secondary">End Date : {{ obj.enddate }}</p>
+            <p class="text-secondary">Applied Duration : {{ obj.duration }}</p>
             {% if obj.nonteachertimeofftype == 'Annual Leave' %}
-              <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
               <p class="text-secondary">Annual leave : {{ applicant.annualleave }}</p>
             {% elif obj.nonteachertimeofftype == 'Sick Leave'%}
-              <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
               <p class="text-secondary">Sick leave : {{ applicant.sickleave }}</p>
             {% elif obj.nonteachertimeofftype == 'Over Time'%}
-              <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
               <p class="text-secondary">Compensated Leave : {{ applicant.compensatedleave }}</p>
             {% endif %}
+            <hr>
+            <p class="text-secondary">Approved Duration : {{ obj.finalduration }}</p>
+
+            {% if obj.nonteacherchangetimeofftype == 'No Pay Leave' %}
+              <p class="text-secondary">* Changed To : No Pay Leave</p>
+            {% elif obj.nonteacherchangetimeofftype == 'Over Time' %}
+              <p class="text-secondary">* Changed To : Over Time</p>
+            {% elif obj.nonteacherchangetimeofftype == 'Annual Leave' %}
+              <p class="text-secondary">* Changed To : Annual Leave</p>
+            {% endif %}
           {% endif %}
-          <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
-          <p class="text-secondary">End Date : {{ obj.enddate }}</p>
-          <p class="text-secondary">Applied Duration : {{ obj.duration }}</p>
-          <p class="text-secondary">Approved Duration : {{ obj.finalduration }}</p>
+          
           <p class="text-secondary">Applicant Reason : {{ obj.reason }}</p><br>
           <h4 class="account-heading">Supervisor Validation:</h4>          
           <p class="text-secondary">Supervisor Approval Status : {{ obj.firststatus }}</p>

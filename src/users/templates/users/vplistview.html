@@ -4,7 +4,7 @@
 
 {{ object_list }}
 
-<h4>Pending Applications</h4>
+<h4>Applications Needed your Action:</h4>
 <table style="width:90%">
 <tr class = 'table'>
     <th >Status</th>
@@ -33,20 +33,39 @@
 			<td> {{ stuff.firststatus }}</td>
 		</tr>
 		{% else %}
-		<tr class = 'table'>
-			<td><a href = "{% url 'vpapprove' myid=stuff.id %}"> {{ stuff.secondstatus }}</td></a>
-			<td> {{ stuff.created_at }}</td>
-			<td> {{ stuff.user.username }} </td>
-			<td> {{ stuff.teachertimeofftype }}</td>
-			{% if stuff.starttime == None and stuff.endtime == None %}
-				<td> {{ stuff.startdate}}</td>
-				<td> {{ stuff.enddate}}</td>
+			{% if stuff.teachertimeofftype == 'Official Leave (In School)' or stuff.teachertimeofftype == 'Official Leave (Outside)'%}
+				{% if stuff.pickvp == user.user %}
+				<tr class = 'table'>
+					<td><a href = "{% url 'vpapprove' myid=stuff.id %}"> {{ stuff.secondstatus }}</td></a>
+					<td> {{ stuff.created_at }}</td>
+					<td> {{ stuff.user.username }} </td>
+					<td> {{ stuff.teachertimeofftype }}</td>
+					{% if stuff.starttime == None and stuff.endtime == None %}
+						<td> {{ stuff.startdate}}</td>
+						<td> {{ stuff.enddate}}</td>
+					{% else %}
+						<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
+						<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
+					{% endif %}	
+					<td> Not Applicable</td>
+				</tr>
+				{% endif %}	
 			{% else %}
-				<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
-				<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
-			{% endif %}	
-			<td> Not Applicable</td>
-		</tr>
+				<tr class = 'table'>
+					<td><a href = "{% url 'vpapprove' myid=stuff.id %}"> {{ stuff.secondstatus }}</td></a>
+					<td> {{ stuff.created_at }}</td>
+					<td> {{ stuff.user.username }} </td>
+					<td> {{ stuff.teachertimeofftype }}</td>
+					{% if stuff.starttime == None and stuff.endtime == None %}
+						<td> {{ stuff.startdate}}</td>
+						<td> {{ stuff.enddate}}</td>
+					{% else %}
+						<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
+						<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
+					{% endif %}	
+					<td> Not Applicable</td>
+				</tr>
+			{% endif%}
 		{% endif%}
 	{% endif %}	
 {% endfor %}

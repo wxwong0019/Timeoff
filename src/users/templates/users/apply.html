@@ -16,65 +16,72 @@
 
   	<fieldset class='form-group'>
       <h3>Time Off Request</h3><hr>
-      {% if user.is_nonteacher %}
-      <h4> Balance for : {{ userid.user }}</h4>
-      <table style="width:30%">
-        <tr class = 'table'>
-              <td> Sick Leave Balance</td>
-              <td> {{ userid.sickleave }} day(s)</td>
-        </tr>
-        <tr class = 'table'>
-              <td> Annual Leave Balance</td>
-              <td> {{ userid.annualleave }} day(s)</td>
-        </tr>
-        <tr class = 'table'>
-              <td> Compensated Leave Balance</td>
-              <td> {{ userid.compensatedleave }} day(s)</td>
-        </tr>
-        <tr class = 'table'>
-              <td> Non-Teacher Ratio</td>
-              <td> {{ userid.ratio }}</td>
-        </tr>
-      </table><br><br>
-      {% else %}
-      <h4> Balance of : {{ userid.user }}</h4><hr>
-      <table style="width:30%">
-        <tr class = 'table'>
-              <td> Sick Leave Balance</td>
-              <td> {{ userid.sickleave }} day(s)</td>
-        </tr>
-        <tr class = 'table'>
-              <td> Casual Leave Balance</td>
-              <td> {{ userid.casualleave }} day(s)</td>
-        </tr>
-      </table><br><br>
-      {% endif %}
-        <hr/>
+      <div class = 'colforapplyandbalance'>
+        <div class = 'colapply'>
+            <!-- <legend class='border-bottom mb-4'> Ka Chi Staff Register </legend> -->
+          <div class="start">
+          
+          <div class="starttimefield">{{ form.startdate|as_crispy_field }}</div>
+          <div class="starttimefield hide" id='input1'>{{ form.starttime|as_crispy_field }}</div>      
+          </div>
 
-  		<!-- <legend class='border-bottom mb-4'> Ka Chi Staff Register </legend> -->
-    <div class="start">
-    
-    <div class="starttimefield">{{ form.startdate|as_crispy_field }}</div>
-    <div class="starttimefield hide" id='input1'>{{ form.starttime|as_crispy_field }}</div>      
+          <div class="end">  
+          <div class="endtimefield">{{ form.enddate|as_crispy_field }}</div>
+          <div class="endtimefield hide" id='input2'>{{ form.endtime|as_crispy_field }}</div>
+          </div>
 
+          <div class="check">
+          <input  type="checkbox" id="checkbox1" onclick="changeHideStatus()"/>
+          <label for="checkbox1">Time Option</label>
+          </div>
+          {% if user.is_teacher %}
+              <div class="starttimefield">{{ form.teachertimeofftype|as_crispy_field }}</div>
+            {% else %}
+              <div class="starttimefield">{{ form.nonteachertimeofftype|as_crispy_field }}</div>
+          {% endif %}
+          
 
+          
+          <div id="hidden_div">{{ form.pickvp|as_crispy_field }}</div>
+        </div>
+        <div class = 'colbalance'>
+            {% if user.is_nonteacher %}
+            <h4> Balance for : {{ userid.user }}</h4>
+            <table style="width:30%">
+              <tr class = 'table'>
+                    <td> Sick Leave Balance</td>
+                    <td> {{ userid.sickleave }} day(s)</td>
+              </tr>
+              <tr class = 'table'>
+                    <td> Annual Leave Balance</td>
+                    <td> {{ userid.annualleave }} day(s)</td>
+              </tr>
+              <tr class = 'table'>
+                    <td> Compensated Leave Balance</td>
+                    <td> {{ userid.compensatedleave }} day(s)</td>
+              </tr>
+              <tr class = 'table'>
+                    <td> Non-Teacher Ratio</td>
+                    <td> {{ userid.ratio }}</td>
+              </tr>
+            </table><br><br>
+            {% else %}
+            <h4> Balance of : {{ userid.user }}</h4><hr>
+            <table style="width:30%">
+              <tr class = 'table'>
+                    <td> Sick Leave Balance</td>
+                    <td> {{ userid.sickleave }} day(s)</td>
+              </tr>
+              <tr class = 'table'>
+                    <td> Casual Leave Balance</td>
+                    <td> {{ userid.casualleave }} day(s)</td>
+              </tr>
+            </table><br><br>
+            {% endif %}
+              <hr/>
+        </div>
+        
     </div>
-
-    <div class="end">  
-    <div class="endtimefield">{{ form.enddate|as_crispy_field }}</div>
-    <div class="endtimefield hide" id='input2'>{{ form.endtime|as_crispy_field }}</div>
-
-    </div>
-    {% if user.is_teacher %}
-        <div class="starttimefield">{{ form.teachertimeofftype|as_crispy_field }}</div>
-      {% else %}
-        <div class="starttimefield">{{ form.nonteachertimeofftype|as_crispy_field }}</div>
-      {% endif %}
-    <div class="check">
-    <input  type="checkbox" id="checkbox1" onclick="changeHideStatus()"/>
-    <label for="checkbox1">Time Option</label>
-    </div>
-   
     <div class="reason">{{ form.reason|as_crispy_field }}</div>
     <div class="file">{{ form.file|as_crispy_field }}</div>
     <script>
@@ -92,13 +99,14 @@
           document.getElementById("input2").setAttribute("class", "endtimefield");
         }
         else{
-
-
           document.getElementById("input1").setAttribute("class", "hide starttimefield");
           document.getElementById("input2").setAttribute("class", "hide endtimefield");
           
           document.getElementById("input1").value = "13:11";
         }
+      }
+      function showDiv(divId, element){
+        document.getElementById(divId).style.display = (element.value == 'Official Leave (Outside)' || element.value == 'Official Leave (In School)') ? 'block' : 'none';
       }
     </script>
 

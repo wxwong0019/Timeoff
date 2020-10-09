@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import ModelForm, Textarea, Select
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile
 from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication,VicePrincipalDetail, Picker, IncrementAll
@@ -104,18 +105,22 @@ class TeacherApplyForm(forms.ModelForm):
 			 'placeholder' : "Pick a Time!",
 			 })
 			)
-	# teachertimeofftype = forms.CharField(required=False)
+	# teachertimeofftype = forms.ChoiceField(required=False, choices = TEACHER_TIMEOFF_CHOICES)
 
 	reason	= forms.CharField(required=False,
 		widget=forms.Textarea(
 			attrs={
 				"cols" : 50,
 				"rows" : 3
-		}))		 
+		}))	
+
+	pickvp = forms.ModelChoiceField(required=False,label ="Choose VP",queryset = User.objects.filter(is_viceprincipal = True))
+
 	class Meta:
 		model = LeaveApplication
 		fields = [
 			'teachertimeofftype',
+			'pickvp',
 			'startdate',
 			'starttime',
 			'enddate',
@@ -123,7 +128,9 @@ class TeacherApplyForm(forms.ModelForm):
 			'reason',
 			'file'
 		]
-
+		widgets={
+			'teachertimeofftype': Select(attrs={"onChange":"showDiv('hidden_div', this)"}),
+		}
 	def clean(self):
 		startdate = self.cleaned_data.get('startdate')
 		enddate = self.cleaned_data.get('enddate')
@@ -423,6 +430,8 @@ class ApplyForForm(forms.ModelForm):
 
 class PickerForm(forms.ModelForm):
 	pickuser = forms.ModelMultipleChoiceField(label ="Applying for",queryset = User.objects.exclude(is_principal = True))
+
+	# pickvp = forms.ModelMultipleChoiceField(label ="Applying for",queryset = User.objects.filter(is_viceprincipal = True))
 	class Meta:
 			model = Picker
 			fields = [
@@ -448,10 +457,13 @@ class FirstValidate(forms.ModelForm):
 
 class SecondValidate(forms.ModelForm):
 
-	
+
+	pickvp = forms.ModelChoiceField(required=False,label ="Assigned Vice Principal",queryset = User.objects.filter(is_viceprincipal = True))
+
 	class Meta:
 		model = LeaveApplication
 		fields = [
+			'pickvp',
 			'secondstatus',
 			'secondcomment'
 		]
@@ -467,6 +479,8 @@ class FinalValidate(forms.ModelForm):
 			'finalstatus',
 			'finalcomment',
 			'finalduration',
+			'attachmentrequired',
+			'attachmentreceived'
 		]
 
 class IncrementAllForm(forms.ModelForm):

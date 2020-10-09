@@ -267,7 +267,7 @@ class LeaveApplication(models.Model):
 	annualleave = 'Annual Leave'
 	specialtuberculosisleave = 'Special Tuberculosis Leave'
 	maternalleave = 'Maternal Leave'
-	nopayleave = 'No Pay Leave'
+	nopayleave = 'No-Pay Leave'
 	paternityleave = 'Paternity Leave'
 	studyleave = 'Study Leave'
 	jurorsorwitnesses = 'Jurors or Witnesses'
@@ -282,7 +282,7 @@ class LeaveApplication(models.Model):
 		(casualleave, 'Casual Leave'),
 		(specialtuberculosisleave, 'Special Tuberculosis Leave'),
 		(maternalleave, 'Maternal Leave'),
-		(nopayleave , 'No Pay Leave'),
+		(nopayleave , 'No-Pay Leave'),
 		(paternityleave, 'Paternity Leave'),
 		(studyleave, 'Study Leave'),
 		(jurorsorwitnesses, 'Jurors or Witnesses'),
@@ -298,7 +298,7 @@ class LeaveApplication(models.Model):
 		(overtime, 'Over Time'),		
 		(specialtuberculosisleave, 'Special Tuberculosis Leave'),
 		(maternalleave, 'Maternal Leave'),
-		(nopayleave , 'No Pay Leave'),
+		(nopayleave , 'No-Pay Leave'),
 		(paternityleave, 'Paternity Leave'),
 		(jurorsorwitnesses, 'Jurors or Witnesses'),
 		(others, 'Others'),
@@ -307,12 +307,12 @@ class LeaveApplication(models.Model):
 	NONTEACHER_CHANGE_TIMEOFF_CHOICES = [
 		(annualleave, 'Annual Leave'),
 		(overtime, 'Over Time'),		
-		(nopayleave , 'No Pay Leave'),
+		(nopayleave , 'No-Pay Leave'),
 	]
 
 	TEACHER_CHANGE_TIMEOFF_CHOICES = [
-		(overtime, 'Over Time'),		
-		(nopayleave , 'No Pay Leave'),
+		(overtime, 'Casual Leave'),		
+		(nopayleave , 'No-Pay Leave'),
 	]
 
 	pending = 'Pending'
@@ -341,6 +341,8 @@ class LeaveApplication(models.Model):
 	totalhr = models.DecimalField(_("Total Hours"),default = 0, max_digits = 1000, decimal_places = 0)
 	reason = models.CharField(max_length= 200, default = '')
 	file = models.FileField(null = True, blank = True)
+	attachmentrequired = models.BooleanField('Attachment Required', default=False)
+	attachmentreceived = models.BooleanField('Attachment Received', default=False)
 	firststatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
 	firstcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	secondstatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
@@ -349,6 +351,7 @@ class LeaveApplication(models.Model):
 	finalduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 2, null=True, blank=True)
 	finalcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+	pickvp = models.ForeignKey( User, on_delete=models.CASCADE, null=True, blank=True, related_name='pickvp')
 
 	class Meta:
 	   ordering = ['-created_at']

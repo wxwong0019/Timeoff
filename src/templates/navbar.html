@@ -21,9 +21,13 @@
 				<li><a class="dropdown-item" href="{% url 'incrementallview' %}">Monthly Increment</a></li>
 			</ul>
 		</li>
-			<li class="nav-item">
-				<a class="nav-link " href="{% url 'userlistview' %}">View Application</a>
-			</li>
+		<li class="nav-item dropdown">
+		 <a class="nav-link  dropdown-toggle" href="#" data-toggle="dropdown" data-hover="dropdown"> View Application </a>
+			<ul class="dropdown-menu">
+				<li><a class="dropdown-item" href="{% url 'prependinglistview' %}">Pre-Pending </a></li>
+			</ul>
+		</li>
+		
 			<li class="nav-item">
 				<a class="nav-link " href="{% url 'applyforapply' %}">Sick Leave Apply for Staff</a>
 			</li>

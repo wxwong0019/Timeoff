@@ -9,32 +9,28 @@
       <div class="media">
         <div class="media-body">
           <h4 class="account-heading">Applicant : {{ obj.user.username }}</h4>
-          <p class="text-secondary">email address : {{ obj.user.email }}</p>
-          {% if obj.file %}
-          <p class="text-secondary">File Uploaded</p>
-          <img src = '{{ obj.file.url }}' class="image"/>
-          {% endif %}
 
+          <div class = 'colforapplyandbalance'>
+
+        <div class = 'colapply'>
           {% if obj.user.is_teacher %}
+            <p class="text-secondary">Teacher Type of Leave : {{ obj.teachertimeofftype }}</p>
+
             {% if obj.teachertimeofftype == 'Casual Leave' %}
-              <p class="text-secondary">Teacher Type of Leave : {{ obj.teachertimeofftype }}</p>
-              <p class="text-secondary">Casual leave : {{ applicant.casualleave }}</p>
+              <p class="text-secondary">Casual Leave Balance: {{ applicant.casualleave }}</p>
             {% elif obj.teachertimeofftype == 'Sick Leave'%}
               <p class="text-secondary">Teacher Type of Leave : {{ obj.teachertimeofftype }}</p>
-              <p class="text-secondary">Sick leave : {{ applicant.sickleave }}</p>
-            
-            {% endif %}
-              
+              <p class="text-secondary">Sick Leave Balance: {{ applicant.sickleave }}</p>
+            {% endif %}    
           {% else %}
+          <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
+
             {% if obj.nonteachertimeofftype == 'Annual Leave' %}
-              <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
-              <p class="text-secondary">Annual leave : {{ applicant.annualleave }}</p>
+              <p class="text-secondary">Annual Leave Balance: {{ applicant.annualleave }}</p>
             {% elif obj.nonteachertimeofftype == 'Sick Leave'%}
-              <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
-              <p class="text-secondary">Sick leave : {{ applicant.sickleave }}</p>
+              <p class="text-secondary">Sick Leave Balance: {{ applicant.sickleave }}</p>
             {% elif obj.nonteachertimeofftype == 'Over Time'%}
-              <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
-              <p class="text-secondary">Compensated Leave : {{ applicant.compensatedleave }}</p>
+              <p class="text-secondary">Compensated Leave Balance: {{ applicant.compensatedleave }}</p>
             {% endif %}
           {% endif %}
           <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
@@ -58,16 +54,60 @@
           <p class="text-secondary">Vice Principal comment : {{ obj.secondcomment }}</p><br>
         </div>
       </div>
+      </div>
+      <div class = 'colbalance'>
+            {% if applicant.is_nonteacher %}
+            <h4> Balance for : {{ applicant.user }}</h4>
+            <table style="width:30%">
+              <tr class = 'table'>
+                    <td> Sick Leave Balance</td>
+                    <td> {{ applicant.sickleave }} day(s)</td>
+              </tr>
+              <tr class = 'table'>
+                    <td> Annual Leave Balance</td>
+                    <td> {{ applicant.annualleave }} day(s)</td>
+              </tr>
+              <tr class = 'table'>
+                    <td> Compensated Leave Balance</td>
+                    <td> {{ applicant.compensatedleave }} day(s)</td>
+              </tr>
+              <tr class = 'table'>
+                    <td> Non-Teacher Ratio</td>
+                    <td> {{ applicant.ratio }}</td>
+              </tr>
+            </table><br><br>
+            {% else %}
+            <h4> Balance of : {{ applicant.user }}</h4><hr>
+            <table style="width:30%">
+              <tr class = 'table'>
+                    <td> Sick Leave Balance</td>
+                    <td> {{ applicant.sickleave }} day(s)</td>
+              </tr>
+              <tr class = 'table'>
+                    <td> Casual Leave Balance</td>
+                    <td> {{ applicant.casualleave }} day(s)</td>
+              </tr>
+            </table><br><br>
+            {% endif %}
+              <hr/>
+        </div>
+    </div>
 
   <form method = 'POST' enctype='multipart/form-data' onsubmit="return confirm('Just want to make sure DID YOU DOUBLE CHECK?');"> 
     {% csrf_token %}
     <fieldset class='form-group'>
       <legend class='border-bottom mb-4'> Principal Final Validation </legend>
+      <div class="check">
+      {{ u_form.attachmentrequired|as_crispy_field }}<br>
+
+      {{ u_form.attachmentreceived|as_crispy_field }}
+      </div><br>
     {% if obj.user.is_teacher %}
       {{ u_form.teacherchangetimeofftype|as_crispy_field }}
     {% else %}
       {{ u_form.nonteacherchangetimeofftype|as_crispy_field }}
     {% endif %}
+
       {{ u_form.finalstatus|as_crispy_field }}
 
       {{ u_form.finalcomment|as_crispy_field }}
