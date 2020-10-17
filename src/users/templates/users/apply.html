@@ -40,10 +40,17 @@
               <div class="starttimefield">{{ form.nonteachertimeofftype|as_crispy_field }}</div>
           {% endif %}
           
-
-          
-          <div id="hidden_div">{{ form.pickvp|as_crispy_field }}</div>
+          {% if user.is_teacher %}
+             <div id="hidden_div">{{ form.pickvp|as_crispy_field }}</div>
+          {% else %}
+             <div id="hidden_div">
+              {{ form.pickvp|as_crispy_field }}
+             {{ form.pickmanager|as_crispy_field }}
+            </div>
+          {% endif %}
+           
         </div>
+
         <div class = 'colbalance'>
             {% if user.is_nonteacher %}
             <h4> Balance for : {{ userid.user }}</h4>
@@ -106,7 +113,7 @@
         }
       }
       function showDiv(divId, element){
-        document.getElementById(divId).style.display = (element.value == 'Official Leave (Outside)' || element.value == 'Official Leave (In School)') ? 'block' : 'none';
+        document.getElementById(divId).style.display = (element.value == 'Official Leave (Outside)' || element.value == 'Official Leave (In School)' || element.value == 'Over Time') ? 'block' : 'none';
       }
     </script>
 

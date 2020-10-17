@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect,  get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.core.mail import send_mail
 from .forms import(
 	TeachingStaffUpdateForm,
@@ -153,7 +154,7 @@ def nonteacherapply(request):
 			a_form = form.save(commit=False)
 			a_form.user = request.user
 			a_form.save()
-
+			form.save_m2m()
 			messages.success(request, f'Non Teacher timeoff applied')
 			send_mail(
 				'iLeave Confirmation' ,
@@ -180,16 +181,6 @@ def teacherapply(request):
 		print(request.POST['startdate'])
 		if form.is_valid():
 			if request.POST['teachertimeofftype'] == 'Official Leave (In School)' or request.POST['teachertimeofftype'] == 'Official Leave (Outside)':
-				# f = form.save(commit=False)
-				# startdate = form.cleaned_data.get('startdate')
-				# enddate = form.cleaned_data.get('enddate')
-				# starttime = form.cleaned_data.get('starttime')
-				# endtime = form.cleaned_data.get('endtime')
-				# reason = form.cleaned_data.get('reason')
-				# pick_vp = form.cleaned_data.get('pickvp')
-				# form.user = request.user
-				# form.save()
-
 				a_form = form.save(commit=False)
 				a_form.user = request.user
 				a_form.save()
@@ -409,11 +400,14 @@ def success(req):
 
 @login_required
 def managerlistview(req):
-
+	user_manager = req.user
 	userid =  req.user.SupervisorDetail.overseeing.all()
-	queryset = LeaveApplication.objects.filter(user__id__in=userid.all()) # list of objects
+	queryset = LeaveApplication.objects.filter(Q(user__id__in=userid.all()) | Q(pickmanager__id=user_manager.id))
+	managerpicked = LeaveApplication.objects.filter(pickmanager__id=user_manager.id) # list of objects
 	context = {
-		"objec_list" : queryset
+		"objec_list" : queryset,
+		'user_manager' : user_manager,
+		'managerpicked': managerpicked
 	}
 	return render(req, "users/managerlistview.html", context)
 

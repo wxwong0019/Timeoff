@@ -216,7 +216,7 @@ class TeachingStaffDetail(models.Model):
 	is_principal = models.BooleanField('Principal status', default=False)
 
 	def __str__(self):
-		return self.user
+		return self.user.username
 
 class NonTeachingStaffDetail(models.Model):
 	user = models.OneToOneField(NonTeachingStaff, on_delete=models.CASCADE)
@@ -231,10 +231,11 @@ class NonTeachingStaffDetail(models.Model):
 	# def save(self, *args, **kwargs):
 	# 	finalduration
 	# 	return super(NonTeachingStaffDetail, self).save(*args, **kwargs)
-
+	def __str__(self):
+		return self.user.username
 class SupervisorDetail(models.Model):
 	user = models.OneToOneField(Supervisor, on_delete=models.CASCADE, null=True, blank=True, related_name='SupervisorDetail')
-	overseeing = models.ManyToManyField(NonTeachingStaff, related_name='overseeing')
+	overseeing = models.ManyToManyField(NonTeachingStaff, related_name='overseeing', null=True, blank=True)
 	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
 	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
@@ -352,7 +353,8 @@ class LeaveApplication(models.Model):
 	finalcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 	pickvp = models.ForeignKey( User, on_delete=models.CASCADE, null=True, blank=True, related_name='pickvp')
-
+	pickmanager = models.ForeignKey( User, on_delete=models.CASCADE, null=True, blank=True, related_name='pickmanager')
+	
 	class Meta:
 	   ordering = ['-created_at']
 

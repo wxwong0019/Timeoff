@@ -214,10 +214,15 @@ class NonTeacherApplyForm(forms.ModelForm):
 				"cols" : 50,
 				"rows" : 3
 		}))
+
+	pickvp = forms.ModelChoiceField(required=False,label ="Please Select Vice-Principal",queryset = User.objects.filter(is_viceprincipal = True))
+	pickmanager = forms.ModelChoiceField(required=False, label ="Please Select Supervisor(s)",queryset = User.objects.filter(is_supervisor = True))
 	class Meta:
 		model = LeaveApplication
 		fields = [
 			'nonteachertimeofftype',
+			'pickvp',
+			'pickmanager',
 			'startdate',
 			'starttime',
 			'enddate',
@@ -225,6 +230,11 @@ class NonTeacherApplyForm(forms.ModelForm):
 			'reason',
 			'file'
 		]
+		widgets={
+				'nonteachertimeofftype': Select(attrs={
+					"onChange":"showDiv('hidden_div', this)"
+					}),
+			}
 class GroupApplyForm(forms.ModelForm):
 	
 	startdate = forms.DateField(label= 'From Date',widget=DatePickerInput(
