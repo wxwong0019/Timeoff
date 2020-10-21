@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{{ object_list }}
+<h4>Pending Applications</h4>
+<table style="width:90%">
+<tr class = 'table'>
+    <th >Status</th>
+    <th>Apply Date/Time</th>
+    <th>Name</th>
+    <th>Leave Type</th>
+    <th>From</th>
+    <th>To</th>
+    <th>Vice Principal Decision</th>
+    <th>Direct Supervisor</th>
+  </tr>
+{% for stuff in objec_list %}
+	{% if stuff.finalstatus == "Pending" %}
+		{% if stuff.user.is_nonteacher %}
+		<tr class = 'table'>
+			<td><a href = "{% url 'alldetailview' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
+			<td> {{ stuff.created_at }}</td>
+			<td> {{ stuff.user.username }} </td>
+			<td> {{ stuff.nonteachertimeofftype }}</td>
+			{% if stuff.starttime == None and stuff.endtime == None %}
+				<td> {{ stuff.startdate}}</td>
+				<td> {{ stuff.enddate}}</td>
+			{% else %}
+				<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
+				<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
+			{% endif %}	
+			<td> {{ stuff.secondstatus }}</td>
+			<td> {{ stuff.firststatus }}</td>
+		</tr>
+		{% else %}
+		<tr class = 'table'>
+			<td><a href = "{% url 'alldetailview' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
+			<td> {{ stuff.created_at }}</td>
+			<td> {{ stuff.user.username }} </td>
+			<td> {{ stuff.teachertimeofftype }}</td>
+			{% if stuff.starttime == None and stuff.endtime == None %}
+				<td> {{ stuff.startdate}}</td>
+				<td> {{ stuff.enddate}}</td>
+			{% else %}
+				<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
+				<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
+			{% endif %}	
+			<td> {{ stuff.secondstatus }}</td>
+			<td> Not Applicable</td>
+		</tr>
+		{% endif%}
+	{% endif %}	
+{% endfor %}
+
+</table>
+		
+{% endblock %}

@@ -3,38 +3,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.core.mail import send_mail
-from .forms import(
-	TeachingStaffUpdateForm,
-	NonTeachingStaffUpdateForm,
-	# UserRegisterForm,
-	UserUpdateForm, 
-	ProfileUpdateForm,
-	TeacherApplyForm,
-	NonTeacherApplyForm,
-	SecondValidate,
-	FirstValidate,
-	FinalValidate,
-	PickerForm,
-	IncrementAllForm,
-	CancelForm,
-	UpdateFileForm,
-	GroupApplyForm,
-	ApplyForForm,
-	ProfileApproveForm
-	) 
-from customstaff.models import (
-	User, 
-	TeachingStaffDetail, 
-	NonTeachingStaffDetail, 
-	TeachingStaff, 
-	NonTeachingStaff, 
-	LeaveApplication, 
-	SupervisorDetail, 
-	VicePrincipalDetail, 
-	PrincipalDetail,
-	Picker,
-	IncrementAll
-	)
+from .filters import *
+from .forms import *
+from customstaff.models import *
 # Create your views here.
 # def register(request):
 # 	if request.method == 'POST':
@@ -55,21 +26,29 @@ from customstaff.models import (
 @login_required
 def profile(request):
 
-		applicant = LeaveApplication.objects.filter(user=request.user)
-		if request.user.is_nonteacher:
-			userid = NonTeachingStaffDetail.objects.get(user = request.user)
-		elif request.user.is_supervisor:
-			userid = SupervisorDetail.objects.get(user = request.user)
-		elif request.user.is_viceprincipal:
-			userid = VicePrincipalDetail.objects.get(user = request.user)
-		else:
-			userid = TeachingStaffDetail.objects.get(user = request.user)
-
-		context = {
-			'applicant':applicant,
-			'userid':userid,
-		}
-		return render(request, 'users/profile.html', context)
+	test = LeaveApplication.objects.filter(user=request.user)
+	if request.user.is_nonteacher:
+		userid = NonTeachingStaffDetail.objects.get(user = request.user)
+	elif request.user.is_supervisor:
+		userid = SupervisorDetail.objects.get(user = request.user)
+	elif request.user.is_viceprincipal:
+		userid = VicePrincipalDetail.objects.get(user = request.user)
+	else:
+		userid = TeachingStaffDetail.objects.get(user = request.user)
+	
+	if request.user.is_nonteacher:
+		myFilter = nonteacherLeaveApplicationFilter(request.GET, queryset=test)
+		applicant = myFilter.qs
+	else:
+		myFilter = teacherLeaveApplicationFilter(request.GET, queryset=test)
+		applicant = myFilter.qs
+	
+	context = {
+		'applicant':applicant,
+		'userid':userid,
+		'myFilter' : myFilter
+	}
+	return render(request, 'users/profile.html', context)
 
 
 def profiledetail(request, myid):
@@ -344,7 +323,13 @@ def incrementallview(request, *args, **kwargs):
 			for stuff in userall:
 				if stuff.is_supervisor and stuff.is_teacher:
 					supervisordetail = SupervisorDetail.objects.get(user=stuff)
-					supervisordetail.sickleave = supervisordetail.sickleave + supervisordetail.increment
+
+					num = supervisordetail.sickleave + supervisordetail.increment
+					if (num > supervisordetail.maxsickleave):
+						supervisordetail.sickleave = supervisordetail.maxsickleave
+					else:
+						supervisordetail.sickleave = num
+
 					created_at = form.cleaned_data.get('created_at')
 
 					f = IncrementAll.objects.create(created_at=created_at, added = supervisordetail.increment, user = stuff)
@@ -352,7 +337,13 @@ def incrementallview(request, *args, **kwargs):
 					f.save()			
 				elif stuff.is_viceprincipal and stuff.is_teacher:
 					viceprincipaldetail = VicePrincipalDetail.objects.get(user=stuff)
-					viceprincipaldetail.sickleave = viceprincipaldetail.sickleave + viceprincipaldetail.increment
+
+					num = viceprincipaldetail.sickleave + viceprincipaldetail.increment
+					if (num > viceprincipaldetail.maxsickleave):
+						viceprincipaldetail.sickleave = viceprincipaldetail.maxsickleave
+					else:
+						viceprincipaldetail.sickleave = num
+
 					created_at = form.cleaned_data.get('created_at')
 					f = IncrementAll.objects.create(created_at=created_at, added = viceprincipaldetail.increment, user = stuff)
 					viceprincipaldetail.save()
@@ -360,7 +351,12 @@ def incrementallview(request, *args, **kwargs):
 					messages.success(request, f'Timeoff added for all users')
 				elif stuff.is_nonteacher:
 					nonteacherdetail = NonTeachingStaffDetail.objects.get(user=stuff)
-					nonteacherdetail.sickleave = nonteacherdetail.sickleave + nonteacherdetail.increment
+					num = nonteacherdetail.sickleave + nonteacherdetail.increment
+					if (num > nonteacherdetail.maxsickleave):
+						nonteacherdetail.sickleave = nonteacherdetail.maxsickleave
+					else:
+						nonteacherdetail.sickleave = num
+
 					created_at = form.cleaned_data.get('created_at')
 					f = IncrementAll.objects.create(created_at=created_at, added = nonteacherdetail.increment, user = stuff)
 					nonteacherdetail.save()
@@ -368,7 +364,13 @@ def incrementallview(request, *args, **kwargs):
 					messages.success(request, f'Timeoff added for all users')
 				elif stuff.is_teacher:
 					teacherdetail = get_object_or_404(TeachingStaffDetail, user = stuff)
-					teacherdetail.sickleave = teacherdetail.sickleave + teacherdetail.increment
+
+					num = teacherdetail.sickleave + teacherdetail.increment
+					if (num > teacherdetail.maxsickleave):
+						teacherdetail.sickleave = teacherdetail.maxsickleave
+					else:
+						teacherdetail.sickleave = num
+
 					created_at = form.cleaned_data.get('created_at')
 					f = IncrementAll.objects.create(created_at=created_at, added = teacherdetail.increment, user = stuff)
 					teacherdetail.save()
@@ -404,6 +406,7 @@ def managerlistview(req):
 	userid =  req.user.SupervisorDetail.overseeing.all()
 	queryset = LeaveApplication.objects.filter(Q(user__id__in=userid.all()) | Q(pickmanager__id=user_manager.id))
 	managerpicked = LeaveApplication.objects.filter(pickmanager__id=user_manager.id) # list of objects
+	
 	context = {
 		"objec_list" : queryset,
 		'user_manager' : user_manager,
@@ -933,6 +936,10 @@ def papprovedecided(request, myid):
 @login_required
 def userlistview(req):
 	queryset = User.objects.exclude(is_principal = True) # list of objects
+	
+	# myFilter = teacherLeaveApplicationFilter(request.GET, queryset=queryset)
+	# queryset = myFilter.qs
+
 	context = {
 		"objec_list" : queryset
 	}
@@ -956,6 +963,23 @@ def userdetailview(request, myid):
 			'obj' : obj, 
 			'applicant' : applicant
 			})
+@login_required
+def alllistview(req):
+	queryset = LeaveApplication.objects.all() # list of objects
+	context = {
+		"objec_list" : queryset
+	}
+	return render(req, "users/alllistview.html", context)
+
+
+@login_required
+def alldetailview(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+	context = {
+		'obj' : obj
+	}
+	return render(request, 'users/alldetailview.html', context)
 
 @login_required
 def prependinglistview(req):
@@ -964,7 +988,6 @@ def prependinglistview(req):
 		"objec_list" : queryset
 	}
 	return render(req, "users/prependinglistview.html", context)
-
 
 @login_required
 def prependingdetailview(request, myid):

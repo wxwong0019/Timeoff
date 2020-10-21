@@ -1,4 +1,10 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load bootstrap3 %}
+
+{% block extrahead %}
+{{ form.media }}
+{% endblock %}
 
 {% block content %}
 
@@ -16,6 +22,14 @@
   {% endif %}
 </div>
 <hr>
+
+<form method = "get">
+
+  {{myFilter.form|crispy}}
+
+  <button class = "btn btn-primary" type = "submit">Search</button>
+</form>
+
 <div class = 'profileapplication'>
 
   <h4>Pre-Prending Application : </h4>

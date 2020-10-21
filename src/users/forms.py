@@ -81,7 +81,7 @@ class TeacherApplyForm(forms.ModelForm):
 				"toolbarPlacement" : 'top',
 				},
 		attrs={
-			 'class': 'starttime',
+			 'class' : 'starttime',
 			 'placeholder' : "Pick a Time!",
 			 })
 			)

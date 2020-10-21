@@ -206,9 +206,9 @@ class Principal(User):
 
 class TeachingStaffDetail(models.Model):
 	user = models.OneToOneField(TeachingStaff, on_delete=models.CASCADE)
-	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
-	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
-	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
+	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(168)])
+	maxsickleave = models.DecimalField(_("Max. Sick Leave"),max_digits = 4, decimal_places = 1, default = 168, validators=[ MinValueValidator(0), MaxValueValidator(168)])
+	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 2, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	firstday = models.DateField(default=timezone.now())
 	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	is_teacher = models.BooleanField('teacher status', default=True)
@@ -220,25 +220,36 @@ class TeachingStaffDetail(models.Model):
 
 class NonTeachingStaffDetail(models.Model):
 	user = models.OneToOneField(NonTeachingStaff, on_delete=models.CASCADE)
-	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
+	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(168)])
+	maxsickleave = models.DecimalField(_("Max. Sick Leave"),max_digits = 4, decimal_places = 1, default = 128, validators=[ MinValueValidator(0), MaxValueValidator(128)])
 	annualleave = models.DecimalField(_("Annual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
+	maxannualleave = models.DecimalField(_("Max. Annual Leave"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(100)])
+
 	compensatedleave = models.DecimalField(_("Compensated Leave Available Hours"),max_digits = 4, decimal_places = 1, default = 0)
 	ratio = models.DecimalField(_("Non-Teacher Ratio"),max_digits = 2, decimal_places = 1, default = 0)
 	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	firstday = models.DateField(default=timezone.now())
 	is_nonteacher = models.BooleanField('Non teaching staff status', default=True)
 	is_secretary = models.BooleanField('Secretary status', default=False)
+	
 	# def save(self, *args, **kwargs):
-	# 	finalduration
+
+	# 	sick_leave = self.sickleave
+	# 	inc = self.increment
+		
+	# 	if self.sickleave > 20:
+	# 		sick_leave = 20
 	# 	return super(NonTeachingStaffDetail, self).save(*args, **kwargs)
+
 	def __str__(self):
 		return self.user.username
+
 class SupervisorDetail(models.Model):
 	user = models.OneToOneField(Supervisor, on_delete=models.CASCADE, null=True, blank=True, related_name='SupervisorDetail')
 	overseeing = models.ManyToManyField(NonTeachingStaff, related_name='overseeing', null=True, blank=True)
-	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
-	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
-	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
+	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(168)])
+	maxsickleave = models.DecimalField(_("Max. Sick Leave"),max_digits = 4, decimal_places = 1, default = 168, validators=[ MinValueValidator(0), MaxValueValidator(168)])
+	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 2, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	firstday = models.DateField(default=timezone.now())
 	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	is_supervisor = models.BooleanField('Supervisor status', default=True)
@@ -246,9 +257,9 @@ class SupervisorDetail(models.Model):
 
 class VicePrincipalDetail(models.Model):
 	user = models.OneToOneField(VicePrincipal, on_delete=models.CASCADE,null=True, blank=True, related_name='VicePrincipalDetail')
-	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
-	# officialleave = models.DecimalField(_("Offical Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0)
-	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(20)])
+	sickleave = models.DecimalField(_("Sick Leave Available Days"),max_digits = 4, decimal_places = 1, default = 0, validators=[ MinValueValidator(0), MaxValueValidator(168)])
+	maxsickleave = models.DecimalField(_("Max. Sick Leave"),max_digits = 4, decimal_places = 1, default = 168, validators=[ MinValueValidator(0), MaxValueValidator(168)])
+	casualleave = models.DecimalField(_("Casual Leave Available Days"),max_digits = 3, decimal_places = 2, default = 2, validators=[ MinValueValidator(0), MaxValueValidator(20)])
 	firstday = models.DateField(default=timezone.now())
 	increment = models.DecimalField(default = 0, max_digits = 2, decimal_places = 0)
 	is_teacher = models.BooleanField('teacher status', default=True)
@@ -355,8 +366,8 @@ class LeaveApplication(models.Model):
 	pickvp = models.ForeignKey( User, on_delete=models.CASCADE, null=True, blank=True, related_name='pickvp')
 	pickmanager = models.ForeignKey( User, on_delete=models.CASCADE, null=True, blank=True, related_name='pickmanager')
 	
-	class Meta:
-	   ordering = ['-created_at']
+	# class Meta:
+	#    ordering = ['-created_at']
 
 	def __str__(self):
 		return self.user.username
@@ -372,13 +383,11 @@ class LeaveApplication(models.Model):
 		if self.starttime == None and self.endtime == None:
 			dur = end_date - start_date + 1
 			hr = (end_date - start_date + 1) * 24
-			print('no time')
 		elif self.starttime != None and self.endtime != None:
 			start_time = self.starttime.hour + self.starttime.minute/60
 			end_time = self.endtime.hour + self.endtime.minute/60
 			dur = end_date - start_date + (end_time-start_time)/8
 			hr = (end_date - start_date)*24 + end_time-start_time
-			print('have time')
 		
 		if self.nonteachertimeofftype == 'Over Time':
 			self.duration = hr

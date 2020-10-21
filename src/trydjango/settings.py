@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bootstrap_datepicker_plus',
     "bootstrap3",
+    'django_filters',
     # own
     'rest_framework',
     'Timeoff',
