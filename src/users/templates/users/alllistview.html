@@ -5,17 +5,19 @@
 {% block extrahead %}
 {{ form.media }}
 {% endblock %}
-
+ 
 {% block content %}
 <div>
 
 <input  type="checkbox" id="checkbox1" onclick="changeHideStatus()"/>
 <label for="checkbox1">Show Filter</label><br>	
-<form method = "get">
-  {{myFilter.form|crispy}}
-  <button class = "btn btn-primary" type = "submit">Search</button>
-</form>
 
+<div class="endtimefield hide" id='input2'>
+	<form method = "get">
+	  {{myFilter.form|crispy}}
+	  <button class = "btn btn-primary" type = "submit">Search</button>
+	</form>
+</div>
 <h4>Pending Applications</h4>
 <table style="width:90%">
 <tr class = 'table'>
@@ -84,28 +86,13 @@
         
         if(document.getElementById("checkbox1").checked == true){
 
-          document.getElementById("input1").setAttribute("class", "hide starttimefield");
           document.getElementById("input2").setAttribute("class", "endtimefield");
-          document.getElementById("id_secondstatus").value = "Pending";
-          if(document.getElementById("id_pickvp").value == 20){
-            document.getElementById("id_pickvp").value = 18;
-          }
-          else{
-            document.getElementById("id_pickvp").value = 20;
-          }
+          
           console.log(document.getElementById("id_pickvp").value)
           
         }
         else{
-          document.getElementById("input1").setAttribute("class", " starttimefield");
-          document.getElementById("input2").setAttribute("class", "hide endtimefield");
-          document.getElementById("id_secondstatus").value = "Pending" 
-          if(document.getElementById("id_pickvp").value == 20){
-            document.getElementById("id_pickvp").value = 18;
-          }
-          else{
-            document.getElementById("id_pickvp").value = 20;
-          }
+          document.getElementById("input2").setAttribute("class", "hide endtimefield");          
           console.log(document.getElementById("id_pickvp").value)
         }
       }
