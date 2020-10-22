@@ -131,6 +131,11 @@ class TeacherApplyForm(forms.ModelForm):
 		widgets={
 			'teachertimeofftype': Select(attrs={"onChange":"showDiv('hidden_div', this)"}),
 		}
+
+	# def __init__(self,*args, **kwargs):
+	#     super(TeacherApplyForm, self).__init__(*args, **kwargs)
+	#     self.fields['teachertimeofftype'].choices =  [('', '---Please select your color---')] + LeaveApplication.TEACHER_TIMEOFF_CHOICES
+
 	def clean(self):
 		startdate = self.cleaned_data.get('startdate')
 		enddate = self.cleaned_data.get('enddate')

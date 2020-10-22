@@ -26,3 +26,18 @@ class nonteacherLeaveApplicationFilter(django_filters.FilterSet):
 		'nonteachertimeofftype',
 		'created_at'
 		]
+
+class LeaveApplicationFilter(django_filters.FilterSet):
+	created_at = DateFilter(label= 'Date Created', lookup_expr='gte')
+
+	class Meta:
+		model = LeaveApplication
+		fields = [
+		
+		'nonteachertimeofftype',
+		'stafftype',
+		'user',
+		'created_at',
+		'attachmentreceived',
+		'attachmentrequired'
+		]

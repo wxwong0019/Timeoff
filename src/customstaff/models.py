@@ -330,8 +330,6 @@ class LeaveApplication(models.Model):
 	pending = 'Pending'
 	approved = 'Approved'
 	denied = 'Denied'
-	# action_required = 'Action Required'
-	# canceled = 'Canceled'
 
 	STATUS_CHOICES = [
 		(pending, 'Pending'),
@@ -340,7 +338,17 @@ class LeaveApplication(models.Model):
 		# (action_required, 'Action Required')
 	]
 
+	teacher = 'Teacher'
+	nonteacher = 'Nonteacher'
+
+	STAFF_TYPE_CHOICES = [
+		(teacher, 'Teacher'),
+		(nonteacher, 'Nonteacher'),
+	]
+
 	created_at = models.DateTimeField(auto_now_add=True, blank=True)
+	stafftype = models.CharField(_("Staff Type"),max_length= 100,choices = STAFF_TYPE_CHOICES, default=nonteacher)
+
 	teachertimeofftype = models.CharField(_("Type of Leave"),max_length= 100,choices = TEACHER_TIMEOFF_CHOICES, default=sickleave)
 	nonteachertimeofftype = models.CharField(_("Type of Leave"),max_length= 100,choices = NONTEACHER_TIMEOFF_CHOICES, default=sickleave)
 	nonteacherchangetimeofftype = models.CharField(_("Change Leave Type"),max_length= 100,choices = NONTEACHER_CHANGE_TIMEOFF_CHOICES, null=True, blank=True)
@@ -366,8 +374,8 @@ class LeaveApplication(models.Model):
 	pickvp = models.ForeignKey( User, on_delete=models.CASCADE, null=True, blank=True, related_name='pickvp')
 	pickmanager = models.ForeignKey( User, on_delete=models.CASCADE, null=True, blank=True, related_name='pickmanager')
 	
-	# class Meta:
-	#    ordering = ['-created_at']
+	class Meta:
+	   ordering = ['-created_at']
 
 	def __str__(self):
 		return self.user.username

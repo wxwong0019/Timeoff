@@ -130,9 +130,21 @@ def nonteacherapply(request):
 		form = NonTeacherApplyForm(request.POST, request.FILES)
 		print(request.POST['startdate'])
 		if form.is_valid():
+
+
 			a_form = form.save(commit=False)
-			a_form.user = request.user
-			a_form.save()
+			user = request.user
+			startdate = form.cleaned_data.get('startdate')
+			enddate = form.cleaned_data.get('enddate')
+			starttime = form.cleaned_data.get('starttime')
+			endtime = form.cleaned_data.get('endtime')
+			reason = form.cleaned_data.get('reason')
+			nonteachertimeofftype = form.cleaned_data.get('nonteachertimeofftype')
+			stafftype = "Nonteacher"
+
+	
+			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, nonteachertimeofftype=nonteachertimeofftype, reason=reason, user=user, stafftype=stafftype)
+			a_form.save()			
 			form.save_m2m()
 			messages.success(request, f'Non Teacher timeoff applied')
 			send_mail(
@@ -159,36 +171,33 @@ def teacherapply(request):
 		form = TeacherApplyForm(request.POST, request.FILES)
 		print(request.POST['startdate'])
 		if form.is_valid():
-			if request.POST['teachertimeofftype'] == 'Official Leave (In School)' or request.POST['teachertimeofftype'] == 'Official Leave (Outside)':
-				a_form = form.save(commit=False)
-				a_form.user = request.user
-				a_form.save()
 
-				messages.success(request, f'Teacher timeoff applied')
+			a_form = form.save(commit=False)
+			user = request.user
+			startdate = form.cleaned_data.get('startdate')
+			enddate = form.cleaned_data.get('enddate')
+			starttime = form.cleaned_data.get('starttime')
+			endtime = form.cleaned_data.get('endtime')
+			reason = form.cleaned_data.get('reason')
+			teachertimeofftype = form.cleaned_data.get('teachertimeofftype')
+			stafftype = "Teacher"
 
-				send_mail(
-					'iLeave Confirmation' ,
-					'Thank you '+request.user.username+ '! You application for '+request.POST['teachertimeofftype']+' is under proccess!',
-					'test@gmail.com',
-					['request.user.email'],
-					)
+	
+			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, reason=reason, user=user, stafftype=stafftype)
+			a_form.save()	
 
-				return redirect('success')
-			else:
-				a_form = form.save(commit=False)
-				a_form.user = request.user
-				a_form.save()
+			messages.success(request, f'Teacher timeoff applied')
 
-				messages.success(request, f'Teacher timeoff applied')
+			send_mail(
+				'iLeave Confirmation' ,
+				'Thank you '+request.user.username+ '! You application for '+request.POST['teachertimeofftype']+' is under proccess!',
+				'test@gmail.com',
+				['request.user.email'],
+				)
 
-				send_mail(
-					'iLeave Confirmation' ,
-					'Thank you '+request.user.username+ '! You application for '+request.POST['teachertimeofftype']+' is under proccess!',
-					'test@gmail.com',
-					['request.user.email'],
-					)
+			return redirect('success')
+			
 
-				return redirect('success')
 		else:
 			messages.warning(request, f'Start date/time must be less than or equal to End date/time!!!')
 	else:
@@ -965,9 +974,20 @@ def userdetailview(request, myid):
 			})
 @login_required
 def alllistview(req):
-	queryset = LeaveApplication.objects.all() # list of objects
+	# allteacher = User.objects.filter(is_teacher = True)
+	# allnonteacher = User.objects.filter(is_nonteacher = True)
+
+	# teacherqueryset = LeaveApplication.objects.filter(user = allteacher) # list of objects
+	# nonteacherqueryset = LeaveApplication.objects.filter(user = allnonteacher)
+
+	queryset = LeaveApplication.objects.all()
+	myFilter = LeaveApplicationFilter(req.GET, queryset=queryset)
+
+	queryset = myFilter.qs
+
 	context = {
-		"objec_list" : queryset
+		"myFilter" : myFilter,
+		"objec_list" : queryset,
 	}
 	return render(req, "users/alllistview.html", context)
 

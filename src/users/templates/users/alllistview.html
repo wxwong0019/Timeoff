@@ -1,25 +1,39 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load bootstrap3 %}
+
+{% block extrahead %}
+{{ form.media }}
+{% endblock %}
 
 {% block content %}
+<div>
 
-{{ object_list }}
+<input  type="checkbox" id="checkbox1" onclick="changeHideStatus()"/>
+<label for="checkbox1">Show Filter</label><br>	
+<form method = "get">
+  {{myFilter.form|crispy}}
+  <button class = "btn btn-primary" type = "submit">Search</button>
+</form>
+
 <h4>Pending Applications</h4>
 <table style="width:90%">
 <tr class = 'table'>
-    <th >Status</th>
+    
     <th>Apply Date/Time</th>
     <th>Name</th>
     <th>Leave Type</th>
     <th>From</th>
     <th>To</th>
+    <th>Supervisor Decision</th>
     <th>Vice Principal Decision</th>
-    <th>Direct Supervisor</th>
+    <th >Principal Decision</th>
+    <th >Detail</th>
   </tr>
 {% for stuff in objec_list %}
 	{% if stuff.finalstatus == "Pending" %}
 		{% if stuff.user.is_nonteacher %}
 		<tr class = 'table'>
-			<td><a href = "{% url 'alldetailview' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
 			<td> {{ stuff.nonteachertimeofftype }}</td>
@@ -30,15 +44,16 @@
 				<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
 				<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
 			{% endif %}	
-			<td> {{ stuff.secondstatus }}</td>
 			<td> {{ stuff.firststatus }}</td>
+			<td> {{ stuff.secondstatus }}</td>
+			<td>{{ stuff.finalstatus }}</td>
+			<td><a href = "{% url 'alldetailview' myid=stuff.id %}">Click</td></a>
 		</tr>
 		{% else %}
 		<tr class = 'table'>
-			<td><a href = "{% url 'alldetailview' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
-			<td> {{ stuff.teachertimeofftype }}</td>
+			<td> {{ stuff.nonteachertimeofftype }}</td>
 			{% if stuff.starttime == None and stuff.endtime == None %}
 				<td> {{ stuff.startdate}}</td>
 				<td> {{ stuff.enddate}}</td>
@@ -46,13 +61,55 @@
 				<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
 				<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
 			{% endif %}	
+			<td> {{ stuff.firststatus }}</td>
 			<td> {{ stuff.secondstatus }}</td>
-			<td> Not Applicable</td>
+			<td>{{ stuff.finalstatus }}</td>
+			<td><a href = "{% url 'alldetailview' myid=stuff.id %}">Click</a></td>
 		</tr>
 		{% endif%}
 	{% endif %}	
 {% endfor %}
-
 </table>
-		
+
+<script>
+      $(document).ready(function(){
+        $("#checkbox1").prop('checked', false);
+        // changevp();
+      });
+
+      let input1;
+      let input2;
+
+      function changeHideStatus(){
+        
+        if(document.getElementById("checkbox1").checked == true){
+
+          document.getElementById("input1").setAttribute("class", "hide starttimefield");
+          document.getElementById("input2").setAttribute("class", "endtimefield");
+          document.getElementById("id_secondstatus").value = "Pending";
+          if(document.getElementById("id_pickvp").value == 20){
+            document.getElementById("id_pickvp").value = 18;
+          }
+          else{
+            document.getElementById("id_pickvp").value = 20;
+          }
+          console.log(document.getElementById("id_pickvp").value)
+          
+        }
+        else{
+          document.getElementById("input1").setAttribute("class", " starttimefield");
+          document.getElementById("input2").setAttribute("class", "hide endtimefield");
+          document.getElementById("id_secondstatus").value = "Pending" 
+          if(document.getElementById("id_pickvp").value == 20){
+            document.getElementById("id_pickvp").value = 18;
+          }
+          else{
+            document.getElementById("id_pickvp").value = 20;
+          }
+          console.log(document.getElementById("id_pickvp").value)
+        }
+      }
+
+    </script>
+</div>
 {% endblock %}
