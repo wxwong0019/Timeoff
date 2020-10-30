@@ -2,7 +2,7 @@ from django import forms
 from django.forms import ModelForm, Textarea, Select
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile
-from customstaff.models import User, TeachingStaffDetail, NonTeachingStaffDetail, TeachingStaff, NonTeachingStaff, LeaveApplication,VicePrincipalDetail, Picker, IncrementAll
+from customstaff.models import *
 from bootstrap_datepicker_plus import DatePickerInput, TimePickerInput, DateTimePickerInput, MonthPickerInput, YearPickerInput
 from django.core.exceptions import ValidationError
 from django.contrib import messages
@@ -86,7 +86,7 @@ class TeacherApplyForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'Thru Date',widget=DatePickerInput(
+	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -96,7 +96,7 @@ class TeacherApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	endtime = forms.TimeField(required=False ,label= 'Thru Time',widget=TimePickerInput(
+	endtime = forms.TimeField(required=False ,label= 'To Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -191,7 +191,7 @@ class NonTeacherApplyForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'Thru Date',widget=DatePickerInput(
+	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -201,7 +201,7 @@ class NonTeacherApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	endtime = forms.TimeField(required=False, label= 'Thru Time',widget=TimePickerInput(
+	endtime = forms.TimeField(required=False, label= 'To Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -262,7 +262,7 @@ class GroupApplyForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'Thru Date',widget=DatePickerInput(
+	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -272,7 +272,7 @@ class GroupApplyForm(forms.ModelForm):
 			 })
 			)
 						
-	endtime = forms.TimeField(required=False ,label= 'Thru Time',widget=TimePickerInput(
+	endtime = forms.TimeField(required=False ,label= 'To Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -360,7 +360,7 @@ class ApplyForForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'Thru Date',widget=DatePickerInput(
+	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -370,7 +370,7 @@ class ApplyForForm(forms.ModelForm):
 			 })
 			)
 						
-	endtime = forms.TimeField(required=False ,label= 'Thru Time',widget=TimePickerInput(
+	endtime = forms.TimeField(required=False ,label= 'To Time',widget=TimePickerInput(
 		options={"stepping" : 5,
 				"toolbarPlacement" : 'top',
 				},
@@ -483,6 +483,21 @@ class SecondValidate(forms.ModelForm):
 			'secondcomment'
 		]
 
+class SecretaryValidate(forms.ModelForm):
+	finalduration = forms.DecimalField(required=False,label = "Modified duration (Optional)", widget=forms.TextInput(attrs={'placeholder' : "Hour for OT, Days for Leave"}) )
+
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'nonteacherchangetimeofftype',
+			'teacherchangetimeofftype',
+			'secretarystatus',
+			'finalcomment',
+			'finalduration',
+			'attachmentrequired',
+			'attachmentreceived'
+		]
+
 class FinalValidate(forms.ModelForm):
 	finalduration = forms.DecimalField(required=False,label = "Modified duration (Optional)", widget=forms.TextInput(attrs={'placeholder' : "Hour for OT, Days for Leave"}) )
 
@@ -510,13 +525,29 @@ class IncrementAllForm(forms.ModelForm):
 	class Meta:
 			model = IncrementAll
 			fields = [
-				'created_at',
-
+				'created_at'
 			]
+
+class DocumentForm(forms.ModelForm):
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'attachmentrequired',
+			'attachmentreceived',
+			'secretarycomment'
+		]
+
 class CancelForm(forms.ModelForm):
 	finalcomment = forms.CharField(required=False,label =  "Cancel reason", widget=forms.TextInput(attrs={'placeholder' : "Reason"}) )
 	class Meta:
 		model = LeaveApplication
 		fields = [
 			'finalcomment',
+		]
+class UserCancelForm(forms.ModelForm):
+	reason = forms.CharField(required=False,label =  "Cancel reason", widget=forms.TextInput(attrs={'placeholder' : "Reason"}) )
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'reason',
 		]

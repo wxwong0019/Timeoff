@@ -48,6 +48,8 @@ urlpatterns = [
     path('<int:myid>/managerapprove/', user_views.managerapprove, name='managerapprove'),
     path('vplistview/', user_views.vplistview, name='vplistview'),
     path('<int:myid>/vpapprove/', user_views.vpapprove, name='vpapprove'),
+    path('secretarylistview/', user_views.secretarylistview, name='secretarylistview'),
+    path('<int:myid>/secretaryapprove/', user_views.secretaryapprove, name='secretaryapprove'),
     path('plistview/', user_views.plistview, name='plistview'),
     path('<int:myid>/papprove/', user_views.papprove, name='papprove'),
     path('plistviewdecided/', user_views.plistviewdecided, name='plistviewdecided'),
@@ -59,7 +61,9 @@ urlpatterns = [
     path('prependinglistview/', user_views.prependinglistview, name='prependinglistview'),
     path('<int:myid>/prependingdetailview/', user_views.prependingdetailview, name='prependingdetailview'),
     path('alllistview/', user_views.alllistview, name='alllistview'),
-    path('<int:myid>/alldetailview/', user_views.alldetailview, name='alldetailview')
+    path('<int:myid>/alldetailview/', user_views.alldetailview, name='alldetailview'),
+    path('documentlistview/', user_views.documentlistview, name='documentlistview'),
+    path('<int:myid>/documentdetailview/', user_views.documentdetailview, name='documentdetailview'),
 ]
 
 

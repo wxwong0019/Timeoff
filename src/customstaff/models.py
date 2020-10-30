@@ -367,6 +367,9 @@ class LeaveApplication(models.Model):
 	firstcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	secondstatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
 	secondcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
+	secretarystatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
+	secretaryduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 2, null=True, blank=True)
+	secretarycomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	finalstatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
 	finalduration = models.DecimalField(_("Modified duration (hr for OT, else use days)"),max_digits = 4, decimal_places = 2, null=True, blank=True)
 	finalcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
@@ -383,7 +386,7 @@ class LeaveApplication(models.Model):
 
 	def save(self, *args, **kwargs):
 		def my_round(x):
-			return math.ceil(x*4)/4
+			return math.ceil(x*2)/2
 
 		start_date = self.startdate.day
 		end_date = self.enddate.day

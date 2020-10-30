@@ -47,14 +47,29 @@
           <p class="text-secondary">Principal comment : {{ obj.finalcomment }}</p><br>
         </div>
       </div>
-      <form method = 'POST' enctype='multipart/form-data'> 
+  
+{% if obj.finalstatus == "Pending" and obj.secondstatus == "Pending" and obj.firststatus == "Pending" %}
+  <form method = 'POST' enctype='multipart/form-data' onsubmit="return confirm('Just want to make sure DID YOU DOUBLE CHECK?');"> 
     {% csrf_token %}
-    
+    <fieldset class='form-group'>
+      <legend class='border-bottom mb-4'> Cancel Application </legend>
+      {{ u_form|crispy }}
+
+    </fieldset>
     <div class='form-group'>
-      <button type="submit" class="btn btn-primary" >Confirm</button>
+      <button type="submit" class="btn btn-primary" onclick="return confirm('*** WARNING : Check your entry as this is an irreversible action. Do you really want to submit? ***');" >Cancel</button>
     </div>
   </form>
+{% else %}
+  <form> 
+    <fieldset class='form-group'>
+      <legend class='border-bottom mb-4'> Cancel Application </legend>
 
-
-  </div>
+    </fieldset>
+    <div class='form-group'>
+      <button type="submit" class="btn btn-primary" disabled="">Cancel</button>
+    </div>
+  </form>
+{% endif %}
+ </div>
 {% endblock %}

@@ -54,24 +54,27 @@ def profile(request):
 def profiledetail(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
-	if request.method == 'POST':	
-		u_form = UpdateFileForm(request.POST,request.FILES)
-								# instance=request.user)
-		
-		if u_form.is_valid():
-			u_form.save()
-			messages.success(request, f'Your file Has Been Updated')
-			return redirect('profile')
+
+	if request.method == 'POST':
+		u_form = UserCancelForm(request.POST, instance=obj)
+		if u_form.is_valid(): 
+			if obj.finalstatus == "Pending" and obj.secondstatus == "Pending" and obj.firststatus == "Pending":
+
+				obj.firststatus = "Canceled"
+				obj.secondstatus = "Canceled"
+				obj.finalstatus = "Canceled"
+				u_form.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('alllistview')
 	
 	else:
-		u_form = UpdateFileForm()
-
-
-		context = {
-			'u_form':u_form,
-			'obj' : obj
-		}
-		return render(request, 'users/profiledetail.html', context)
+		u_form = UserCancelForm(instance=obj)
+	context = {
+		'obj' : obj,
+		'u_form' : u_form
+	}
+	return render(request, 'users/profiledetail.html', context)
 
 def profileapprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
@@ -478,6 +481,76 @@ def vpapprove(request, myid):
 	return render(request, "users/vpapprove.html", context)
 
 @login_required
+def secretarylistview(req):
+	queryset = LeaveApplication.objects.all() # list of objects
+	context = {
+		"objec_list" : queryset,
+	}
+	return render(req, "users/secretarylistview.html", context)
+
+@login_required
+def secretaryapprove(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+	userid = obj.user
+	if obj.user.is_nonteacher:
+		applicant = NonTeachingStaffDetail.objects.get(user = userid)
+	elif obj.user.is_supervisor:
+		applicant = SupervisorDetail.objects.get(user = userid)
+	elif obj.user.is_viceprincipal:
+		applicant = VicePrincipalDetail.objects.get(user = userid)
+	else:
+		applicant = TeachingStaffDetail.objects.get(user = userid)
+	if request.method == 'POST':	
+		u_form = SecretaryValidate(request.POST, instance=obj)
+		if u_form.is_valid():
+			if obj.finalduration is None:
+				modify = obj.duration
+				u_form.save()
+				obj.finalduration = modify
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+
+				send_mail(
+				'iLeave Confirmation' ,
+				'Hello '+obj.user.username+ 'your leave application status has been updated! Please sign in to review.',
+				'test@gmail.com',
+				[obj.user.email],
+				)
+
+				return redirect('secretarylistview')
+			else:
+				modify = obj.finalduration
+				u_form.save()
+				obj.finalduration = modify
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+
+				send_mail(
+				'iLeave Confirmation' ,
+				'Hello '+obj.user.username+ 'your leave application status has been updated! Please sign in to review.',
+				'test@gmail.com',
+				[obj.user.email],
+				)
+
+				return redirect('secretarylistview')
+			
+	else:
+		u_form = SecretaryValidate(instance=obj)
+
+
+		context = {
+			'u_form':u_form,
+			'obj' : obj,
+			'applicant' : applicant
+		}
+	return render(request, "users/secretaryapprove.html", {
+			'u_form':u_form,
+			'obj' : obj,
+			'applicant' : applicant
+		})
+
+@login_required
 def plistview(req):
 	queryset = LeaveApplication.objects.all() # list of objects
 	context = {
@@ -498,9 +571,6 @@ def papprove(request, myid):
 		applicant = VicePrincipalDetail.objects.get(user = userid)
 	else:
 		applicant = TeachingStaffDetail.objects.get(user = userid)
-	# supervisor = SupervisorDetail.objects.get(user = userid)
-	# viceprincipal = VicePrincipalDetail.objects.get(user = userid)
-	# teacher = TeachingStaffDetail.objects.get(user = userid)
 
 	if request.method == 'POST' :
 		u_form = FinalValidate(request.POST, instance=obj)
@@ -645,95 +715,6 @@ def papprove(request, myid):
 						obj.save()
 						messages.success(request, f'non teacher DONE')
 						return redirect('plistview')
-
-			# elif u_form.is_valid() and obj.user.is_supervisor:
-			# 		if obj.teachertimeofftype == 'Casual Leave':
-			# 			if obj.finalduration is None:
-			# 				modify = obj.duration
-			# 				applicant.casualleave = applicant.casualleave - abs(modify)
-			# 				u_form.save()
-			# 				applicant.save()
-			# 				obj.finalduration = modify
-			# 				obj.save()
-			# 				messages.success(request, f'non teacher DONE')
-			# 				return redirect('plistview')
-			# 			else:
-			# 				modify = obj.finalduration
-			# 				applicant.casualleave = applicant.casualleave - abs(modify)
-			# 				u_form.save()
-			# 				applicant.save()
-			# 				obj.finalduration = modify
-			# 				obj.save()
-			# 				messages.success(request, f'non teacher DONE')
-			# 				return redirect('plistview')
-			# 		elif obj.teachertimeofftype == 'Sick Leave':
-			# 			if obj.finalduration is None:
-			# 				modify = obj.duration
-			# 				applicant.sickleave = applicant.sickleave - abs(modify)
-			# 				u_form.save()
-			# 				applicant.save()
-			# 				obj.finalduration = modify
-			# 				obj.save()
-			# 				messages.success(request, f'non teacher DONE')
-			# 				return redirect('plistview')
-			# 			else:
-			# 				modify = obj.finalduration
-			# 				applicant.sickleave = applicant.sickleave - abs(modify)
-			# 				u_form.save()
-			# 				applicant.save()
-			# 				obj.finalduration = modify
-			# 				obj.save()
-			# 				messages.success(request, f'non teacher DONE')
-			# 				return redirect('plistview')
-			# 		else:
-			# 			u_form.save()
-			# 			messages.success(request, f'supervisor DONE')
-			# 			return redirect('plistview')	
-
-			# elif u_form.is_valid() and obj.user.is_viceprincipal:
-			# 		if obj.teachertimeofftype == 'Casual Leave':
-			# 			if obj.finalduration is None:
-			# 				modify = obj.duration
-			# 				applicant.casualleave = applicant.casualleave - abs(modify)
-			# 				u_form.save()
-			# 				applicant.save()
-			# 				obj.finalduration = modify
-			# 				obj.save()
-			# 				messages.success(request, f'non teacher DONE')
-			# 				return redirect('plistview')
-			# 			else:
-			# 				modify = obj.finalduration
-			# 				applicant.casualleave = applicant.casualleave - abs(modify)
-			# 				u_form.save()
-			# 				applicant.save()
-			# 				obj.finalduration = modify
-			# 				obj.save()
-			# 				messages.success(request, f'non teacher DONE')
-			# 				return redirect('plistview')
-			# 		elif obj.teachertimeofftype == 'Sick Leave':
-			# 			if obj.finalduration is None:
-			# 				modify = obj.duration
-			# 				applicant.sickleave = applicant.sickleave - abs(modify)
-			# 				u_form.save()
-			# 				applicant.save()
-			# 				obj.finalduration = modify
-			# 				obj.save()
-			# 				messages.success(request, f'non teacher DONE')
-			# 				return redirect('plistview')
-			# 			else:
-			# 				modify = obj.finalduration
-			# 				applicant.sickleave = applicant.sickleave - abs(modify)
-			# 				u_form.save()
-			# 				applicant.save()
-			# 				obj.finalduration = modify
-			# 				obj.save()
-			# 				messages.success(request, f'non teacher DONE')
-			# 				return redirect('plistview')	
-			# 		else:
-			# 			u_form.save()
-			# 			messages.success(request, f'viceprincipal DONE')
-			# 			return redirect('plistview')		
-
 			elif u_form.is_valid() and obj.user.is_teacher:
 				if obj.teacherchangetimeofftype is None:	
 					if obj.teachertimeofftype == 'Casual Leave':
@@ -801,6 +782,11 @@ def papprove(request, myid):
 				u_form.save()
 				messages.success(request, f'LeaveApplication Denied')
 				return redirect('plistview')
+		elif u_form.is_valid() and obj.finalstatus == 'Pending':	
+			if u_form.is_valid():
+				u_form.save()
+				messages.warning(request, f'Please select a Decision')
+				return redirect(request.get_full_path())
 		
 	else:
 		u_form = FinalValidate(instance=obj)
@@ -996,10 +982,67 @@ def alllistview(req):
 def alldetailview(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
+
+	if request.method == 'POST':
+		u_form = UserCancelForm(request.POST, instance=obj)
+		if u_form.is_valid(): 
+			if obj.finalstatus == "Pending" and obj.secondstatus == "Pending" and obj.firststatus == "Pending":
+
+				obj.firststatus = "Canceled"
+				obj.secondstatus = "Canceled"
+				obj.finalstatus = "Canceled"
+				u_form.save()
+				obj.save()
+				messages.success(request, f'non teacher DONE')
+				return redirect('alllistview')
+	
+	else:
+		u_form = UserCancelForm(instance=obj)
 	context = {
-		'obj' : obj
+		'obj' : obj,
+		'u_form' : u_form
 	}
 	return render(request, 'users/alldetailview.html', context)
+
+@login_required
+def documentlistview(req):
+	# allteacher = User.objects.filter(is_teacher = True)
+	# allnonteacher = User.objects.filter(is_nonteacher = True)
+
+	# teacherqueryset = LeaveApplication.objects.filter(user = allteacher) # list of objects
+	# nonteacherqueryset = LeaveApplication.objects.filter(user = allnonteacher)
+
+	queryset = LeaveApplication.objects.filter(Q(attachmentrequired=True) & Q(attachmentreceived=False))
+	# myFilter = LeaveApplicationFilter(req.GET, queryset=queryset)
+
+	# queryset = myFilter.qs
+
+	context = {
+		# "myFilter" : myFilter,
+		"objec_list" : queryset,
+	}
+	return render(req, "users/documentlistview.html", context)
+
+
+@login_required
+def documentdetailview(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+
+	if request.method == 'POST':
+		u_form = DocumentForm(request.POST, instance=obj)
+		if u_form.is_valid(): 	
+			u_form.save()
+			messages.success(request, f'non teacher DONE')
+			return redirect('documentlistview')
+	
+	else:
+		u_form = DocumentForm(instance=obj)
+	context = {
+		'obj' : obj,
+		'u_form' : u_form
+	}
+	return render(request, 'users/documentdetailview.html', context)
 
 @login_required
 def prependinglistview(req):

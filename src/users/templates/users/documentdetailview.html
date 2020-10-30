@@ -9,7 +9,6 @@
       <div class="media">
         <div class="media-body">
           <h4 class="account-heading">Applicant : {{ obj.user.username }}</h4>
-          <p class="text-secondary">email address : {{ obj.user.email }}</p>
 
           {% if obj.user.is_teacher %}
             {% if obj.teachertimeofftype == 'Casual Leave' %}
@@ -48,7 +47,7 @@
           <p class="text-secondary">Principal comment : {{ obj.finalcomment }}</p><br>
         </div>
       </div>
-
+  
 {% if obj.finalstatus == "Pending" and obj.secondstatus == "Pending" and obj.firststatus == "Pending" %}
   <form method = 'POST' enctype='multipart/form-data' onsubmit="return confirm('Just want to make sure DID YOU DOUBLE CHECK?');"> 
     {% csrf_token %}
@@ -61,20 +60,22 @@
       <button type="submit" class="btn btn-primary" onclick="return confirm('*** WARNING : Check your entry as this is an irreversible action. Do you really want to submit? ***');" >Cancel</button>
     </div>
   </form>
-{% elif obj.finalstatus == "Canceled"%}
-
 {% else %}
-  <form> 
+  <form method = 'POST' enctype='multipart/form-data' onsubmit="return confirm('Just want to make sure DID YOU DOUBLE CHECK?');"> 
+    {% csrf_token %}
     <fieldset class='form-group'>
-      <legend class='border-bottom mb-4'> Cancel Application </legend>
-      <div style="font-weight: lighter; ">**Please contact your supervisor, Vice Principal and Secretary to Cancel**</div>
+      <legend class='border-bottom mb-4'> Document Check </legend>
+      <div class="check">
+      {{ u_form.attachmentrequired|as_crispy_field }}<br>
+
+      {{ u_form.attachmentreceived|as_crispy_field }}
+      </div><br>
+
     </fieldset>
     <div class='form-group'>
-      <button type="submit" class="btn btn-primary" disabled="">Cancel</button>
+      <button type="submit" class="btn btn-primary" onclick="return confirm('*** WARNING : Check your entry as this is an irreversible action. Do you really want to submit? ***');" >Save</button>
     </div>
   </form>
 {% endif %}
-
-
-  </div>
+ </div>
 {% endblock %}

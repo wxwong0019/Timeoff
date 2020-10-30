@@ -9,16 +9,8 @@
 {% block content %}
 <div>
 
-<input  type="checkbox" id="checkbox1" onclick="changeHideStatus()"/>
-<label for="checkbox1">Show Filter</label><br>	
-
-<div class="endtimefield hide" id='input2'>
-	<form method = "get">
-	  {{myFilter.form|crispy}}
-	  <button class = "btn btn-primary" type = "submit">Search</button>
-	</form>
-</div>
-<h3>All Applications</h3><br/>
+<!--  -->
+<h3>Check Document</h3><br/>
 <table style="width:90%">
   <tr class = 'table'>
     <th>Apply Date/Time</th>
@@ -29,9 +21,10 @@
     <th>Supervisor Decision</th>
     <th>Vice Principal Decision</th>
     <th >Principal Decision</th>
-    <th >Detail</th>
+    <th >Check</th>
   </tr>
 {% for stuff in objec_list %}
+	{% if stuff.secondstatus == "Pending" %}
 		{% if stuff.user.is_nonteacher %}
 		<tr class = 'table'>
 			<td> {{ stuff.created_at }}</td>
@@ -47,7 +40,7 @@
 			<td> {{ stuff.firststatus }}</td>
 			<td> {{ stuff.secondstatus }}</td>
 			<td>{{ stuff.finalstatus }}</td>
-			<td><a href = "{% url 'alldetailview' myid=stuff.id %}">Click</td></a>
+			<td><a href = "{% url 'documentdetailview' myid=stuff.id %}">{{ stuff.attachmentreceived }}</td></a>
 		</tr>
 		{% else %}
 		<tr class = 'table'>
@@ -64,9 +57,10 @@
 			<td> {{ stuff.firststatus }}</td>
 			<td> {{ stuff.secondstatus }}</td>
 			<td>{{ stuff.finalstatus }}</td>
-			<td><a href = "{% url 'alldetailview' myid=stuff.id %}">Click</a></td>
+			<td><a href = "{% url 'documentdetailview' myid=stuff.id %}">{{ stuff.attachmentreceived }}</a></td>
 		</tr>
 		{% endif%}
+	{% endif %}	
 {% endfor %}
 </table>
 
