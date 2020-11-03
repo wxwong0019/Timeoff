@@ -363,6 +363,7 @@ class LeaveApplication(models.Model):
 	file = models.FileField(null = True, blank = True)
 	attachmentrequired = models.BooleanField('Attachment Required', default=False)
 	attachmentreceived = models.BooleanField('Attachment Received', default=False)
+	calendarcheck = models.BooleanField('calendar check', default=False)
 	firststatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)
 	firstcomment = models.CharField(_("Comment"),max_length= 200, blank=True)
 	secondstatus = models.CharField(_("Decision"),max_length= 10,choices = STATUS_CHOICES, default=pending)

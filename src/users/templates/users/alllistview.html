@@ -17,6 +17,17 @@
 	  {{myFilter.form|crispy}}
 	  <button class = "btn btn-primary" type = "submit">Search</button>
 	</form>
+	
+	<form method = 'POST' enctype='multipart/form-data'> 
+    {% csrf_token %}
+    <fieldset class='form-group'>
+      <legend class='border-bottom mb-4'> Export to Excel </legend>
+    </fieldset>
+    <div class='form-group'>
+      <button type="submit" class="btn btn-primary" onclick="return confirm('Export the following record as Excel?');" >Export</button>
+    </div>
+  </form>
+
 </div>
 <h3>All Applications</h3><br/>
 <table style="width:90%">

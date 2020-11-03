@@ -536,6 +536,14 @@ class DocumentForm(forms.ModelForm):
 			'attachmentreceived',
 			'secretarycomment'
 		]
+class CalendarForm(forms.ModelForm):
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'calendarcheck',
+			'secretarycomment'
+		]
+
 
 class CancelForm(forms.ModelForm):
 	finalcomment = forms.CharField(required=False,label =  "Cancel reason", widget=forms.TextInput(attrs={'placeholder' : "Reason"}) )

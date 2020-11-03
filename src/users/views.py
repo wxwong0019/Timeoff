@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect,  get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.db.models import Q
 from django.core.mail import send_mail
 from .filters import *
 from .forms import *
 from customstaff.models import *
+from django.http import HttpResponse 
+import csv
 # Create your views here.
 # def register(request):
 # 	if request.method == 'POST':
@@ -22,6 +25,22 @@ from customstaff.models import *
 # 		form = UserRegisterForm()
 
 # 	return render(request, 'users/register.html', {'form': form})
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'users/change_password.html', {
+        'form': form
+    })
 
 @login_required
 def profile(request):
@@ -971,6 +990,18 @@ def alllistview(req):
 
 	queryset = myFilter.qs
 
+	if req.method == 'POST':
+		response = HttpResponse(content_type='text/csv') 
+		response['Content-Disposition'] = 'attachment; filename="LeaveExport.csv"' 
+		writer = csv.writer(response) 
+		writer.writerow(['Apply Date/Time', 'Name', 'Leave Type', 'From Date', 'From Time', 'To Date', 'To Time', 'Supervisor Decision', 'Vice Principal Decision', 'Principal Decision', 'Remark']) 
+		instance = queryset 
+		for row in instance:
+			if row.user.is_nonteacher:
+				writer.writerow([row.created_at, row.user.username, row.nonteachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.firststatus, row.secondstatus, row.finalstatus, row.finalcomment]) 
+			else:
+				writer.writerow([row.created_at, row.user.username, row.teachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.firststatus, row.secondstatus, row.finalstatus, row.finalcomment]) 
+		return response 
 	context = {
 		"myFilter" : myFilter,
 		"objec_list" : queryset,
@@ -1043,6 +1074,39 @@ def documentdetailview(request, myid):
 		'u_form' : u_form
 	}
 	return render(request, 'users/documentdetailview.html', context)
+
+@login_required
+def calendarlistview(req):
+	queryset = LeaveApplication.objects.filter(calendarcheck=False)
+	# myFilter = LeaveApplicationFilter(req.GET, queryset=queryset)
+
+	# queryset = myFilter.qs
+
+	context = {
+		# "myFilter" : myFilter,
+		"objec_list" : queryset,
+	}
+	return render(req, "users/calendarlistview.html", context)
+
+@login_required
+def calendardetailview(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+
+	if request.method == 'POST':
+		u_form = CalendarForm(request.POST, instance=obj)
+		if u_form.is_valid(): 	
+			u_form.save()
+			messages.success(request, f'non teacher DONE')
+			return redirect('calendarlistview')
+	
+	else:
+		u_form = CalendarForm(instance=obj)
+	context = {
+		'obj' : obj,
+		'u_form' : u_form
+	}
+	return render(request, 'users/calendardetailview.html', context)
 
 @login_required
 def prependinglistview(req):

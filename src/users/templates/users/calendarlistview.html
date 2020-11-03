@@ -10,7 +10,7 @@
 <div>
 
 <!--  -->
-<h3>Check Attachment</h3><br/>
+<h3>Check Calendar</h3><br/>
 <table style="width:90%">
   <tr class = 'table'>
     <th>Apply Date/Time</th>
@@ -40,7 +40,7 @@
 			<td> {{ stuff.firststatus }}</td>
 			<td> {{ stuff.secondstatus }}</td>
 			<td>{{ stuff.finalstatus }}</td>
-			<td><a href = "{% url 'documentdetailview' myid=stuff.id %}">{{ stuff.attachmentreceived }}</td></a>
+			<td><a href = "{% url 'calendardetailview' myid=stuff.id %}">{{ stuff.calendarcheck }}</td></a>
 		</tr>
 		{% else %}
 		<tr class = 'table'>
@@ -57,7 +57,7 @@
 			<td> {{ stuff.firststatus }}</td>
 			<td> {{ stuff.secondstatus }}</td>
 			<td>{{ stuff.finalstatus }}</td>
-			<td><a href = "{% url 'documentdetailview' myid=stuff.id %}">{{ stuff.attachmentreceived }}</a></td>
+			<td><a href = "{% url 'calendardetailview' myid=stuff.id %}">{{ stuff.calendarcheck }}</a></td>
 		</tr>
 		{% endif%}
 	{% endif %}	

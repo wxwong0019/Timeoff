@@ -64,6 +64,9 @@ urlpatterns = [
     path('<int:myid>/alldetailview/', user_views.alldetailview, name='alldetailview'),
     path('documentlistview/', user_views.documentlistview, name='documentlistview'),
     path('<int:myid>/documentdetailview/', user_views.documentdetailview, name='documentdetailview'),
+    path('calendarlistview/', user_views.calendarlistview, name='calendarlistview'),
+    path('<int:myid>/calendardetailview/', user_views.calendardetailview, name='calendardetailview'),
+    path('change_password/', user_views.change_password, name='change_password'),
 ]
 
 
