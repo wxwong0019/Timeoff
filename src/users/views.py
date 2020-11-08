@@ -85,7 +85,7 @@ def profiledetail(request, myid):
 				u_form.save()
 				obj.save()
 				messages.success(request, f'non teacher DONE')
-				return redirect('alllistview')
+				return redirect('profile')
 	
 	else:
 		u_form = UserCancelForm(instance=obj)
@@ -162,10 +162,33 @@ def nonteacherapply(request):
 			endtime = form.cleaned_data.get('endtime')
 			reason = form.cleaned_data.get('reason')
 			nonteachertimeofftype = form.cleaned_data.get('nonteachertimeofftype')
+			pickmanager = form.cleaned_data.get('pickmanager')
+			pickvp = form.cleaned_data.get('pickvp')
 			stafftype = "Nonteacher"
 
-	
-			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, nonteachertimeofftype=nonteachertimeofftype, reason=reason, user=user, stafftype=stafftype)
+			def my_round(x):
+				return math.ceil(x*2)/2
+
+			start_date = startdate.day
+			end_date = enddate.day
+			
+
+			if starttime == None and endtime == None:
+				dur = end_date - start_date + 1
+				hr = (end_date - start_date + 1) * 24
+			elif starttime != None and endtime != None:
+				start_time = starttime.hour + starttime.minute/60
+				end_time = endtime.hour + endtime.minute/60
+				dur = end_date - start_date + (end_time-start_time)/8
+				hr = (end_date - start_date)*24 + end_time-start_time
+			
+			if nonteachertimeofftype == 'Over Time':
+				duration = hr * userid.ratio
+			else:
+				duration = my_round(dur)
+				
+
+			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, nonteachertimeofftype=nonteachertimeofftype, alltimeofftype=nonteachertimeofftype,reason=reason, user=user, stafftype=stafftype, pickvp=pickvp, pickmanager=pickmanager, duration=duration)
 			a_form.save()			
 			form.save_m2m()
 			messages.success(request, f'Non Teacher timeoff applied')
@@ -202,10 +225,28 @@ def teacherapply(request):
 			endtime = form.cleaned_data.get('endtime')
 			reason = form.cleaned_data.get('reason')
 			teachertimeofftype = form.cleaned_data.get('teachertimeofftype')
+			pickvp = form.cleaned_data.get('pickvp')
 			stafftype = "Teacher"
 
-	
-			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, reason=reason, user=user, stafftype=stafftype)
+			def my_round(x):
+				return math.ceil(x*2)/2
+
+			start_date = startdate.day
+			end_date = enddate.day
+			
+
+			if starttime == None and endtime == None:
+				dur = end_date - start_date + 1
+				hr = (end_date - start_date + 1) * 24
+			elif starttime != None and endtime != None:
+				start_time = starttime.hour + starttime.minute/60
+				end_time = endtime.hour + endtime.minute/60
+				dur = end_date - start_date + (end_time-start_time)/8
+				hr = (end_date - start_date)*24 + end_time-start_time
+			
+			duration = my_round(dur)
+
+			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, alltimeofftype=teachertimeofftype, reason=reason, user=user, stafftype=stafftype, pickvp=pickvp,duration=duration)
 			a_form.save()	
 
 			messages.success(request, f'Teacher timeoff applied')
@@ -247,18 +288,19 @@ def supervisorapply(request, *args, **kwargs):
 			starttime = form.cleaned_data.get('starttime')
 			endtime = form.cleaned_data.get('endtime')
 			reason = form.cleaned_data.get('reason')
-			teachertimeofftype = 'Official Leave'
-			nonteachertimeofftype = 'Official Leave'
+			teachertimeofftype = form.cleaned_data.get('officialtype')
+			nonteachertimeofftype = form.cleaned_data.get('officialtype')
 			alluser = pickform.cleaned_data.get('pickuser')
+			appliedby = request.user
 
 			print(alluser)
 			for stuff in alluser:
 				if stuff.is_nonteacher:
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, reason=reason, user=stuff)
+					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, nonteachertimeofftype=nonteachertimeofftype, alltimeofftype=nonteachertimeofftype, reason=reason, user=stuff, stafftype = "Nonteacher", appliedby = appliedby, firststatus = "Approved")
 					f.save()			
 					messages.success(request, f'Timeoff applied')
 				elif stuff.is_viceprincipal or stuff.is_teacher or stuff.is_principal or stuff.is_supervisor:	
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, nonteachertimeofftype=nonteachertimeofftype, reason=reason, user=stuff)
+					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, alltimeofftype=teachertimeofftype, reason=reason, user=stuff, stafftype = "Teacher", appliedby = appliedby, firststatus = "Approved")
 					f.save()			
 					messages.success(request, f'Timeoff applied')
 
@@ -268,7 +310,7 @@ def supervisorapply(request, *args, **kwargs):
 				'test@gmail.com',
 				[stuff.email],
 				)
-				send_mail(
+			send_mail(
 					'iLeave Confirmation' ,
 					'Thank you '+request.user.username+ '! You application for group application for Official leave is under proccess!',
 					'test@gmail.com',
@@ -276,7 +318,7 @@ def supervisorapply(request, *args, **kwargs):
 					)
 			return redirect('success')
 	else:
-		form = TeacherApplyForm()
+		form = GroupApplyForm()
 		pickform = PickerForm()
 
 	return render(request, "users/supervisorapply.html", {'form':form, 'pickform':pickform, 'userid':userid})
@@ -303,21 +345,43 @@ def applyforapply(request, *args, **kwargs):
 			starttime = form.cleaned_data.get('starttime')
 			endtime = form.cleaned_data.get('endtime')
 			reason = form.cleaned_data.get('reason')
+			emergencytype = form.cleaned_data.get('emergencytype')
 			firststatus = 'Action Required'
 			secondstatus = 'Action Required'
 			finalstatus = 'Action Required'
-			teachertimeofftype = 'Sick Leave'
-			nonteachertimeofftype = 'Sick Leave'
+			teachertimeofftype = emergencytype
+			nonteachertimeofftype = emergencytype
 			alluser = pickform.cleaned_data.get('pickuser')
+
+			def my_round(x):
+				return math.ceil(x*2)/2
+
+			start_date = startdate.day
+			end_date = enddate.day
+			
+
+			if starttime == None and endtime == None:
+				dur = end_date - start_date + 1
+				hr = (end_date - start_date + 1) * 24
+			elif starttime != None and endtime != None:
+				start_time = starttime.hour + starttime.minute/60
+				end_time = endtime.hour + endtime.minute/60
+				dur = end_date - start_date + (end_time-start_time)/8
+				hr = (end_date - start_date)*24 + end_time-start_time
+			
+			if nonteachertimeofftype == 'Over Time':
+				duration = hr * userid.ratio
+			else:
+				duration = my_round(dur)
 
 			print(alluser)
 			for stuff in alluser:
 				if stuff.is_nonteacher:
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus, finalstatus=finalstatus, teachertimeofftype=teachertimeofftype, reason=reason, user=stuff)
+					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus,secretarystatus= secondstatus, finalstatus=finalstatus, nonteachertimeofftype=nonteachertimeofftype, alltimeofftype=nonteachertimeofftype,reason=reason, user=stuff, stafftype = "Nonteacher",duration=duration)
 					f.save()			
 					messages.success(request, f'Timeoff applied')
 				elif stuff.is_viceprincipal or stuff.is_teacher or stuff.is_principal or stuff.is_supervisor:	
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus, finalstatus=finalstatus, nonteachertimeofftype=nonteachertimeofftype, reason=reason, user=stuff)
+					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus,secretarystatus= secondstatus, finalstatus=finalstatus, teachertimeofftype=teachertimeofftype, alltimeofftype=teachertimeofftype,reason=reason, user=stuff, stafftype = "Teacher",duration=duration)
 					f.save()			
 					messages.success(request, f'Timeoff applied')
 
@@ -339,6 +403,87 @@ def applyforapply(request, *args, **kwargs):
 		pickform = PickerForm()
 
 	return render(request, "users/applyforapply.html", {'form':form, 'pickform':pickform, 'userid':userid})
+
+@login_required
+def applyforapply2(request, *args, **kwargs):
+	if request.user.is_supervisor:
+		userid = SupervisorDetail.objects.get(user = request.user)
+	elif request.user.is_viceprincipal:
+		userid = VicePrincipalDetail.objects.get(user = request.user)
+	elif request.user.is_secretary:
+		userid = NonTeachingStaffDetail.objects.get(user = request.user)
+	if request.method == 'POST':
+		pickform = PickerForm(request.POST)
+		form = ApplyForForm2(request.POST)
+		userid = request.POST['pickuser']
+		user = User.objects.filter(id=userid)
+		# userid = list(User.objects.filter(username=request.POST['pickuser']).values('pickuser'))
+		if form.is_valid() and pickform.is_valid():		
+			f = form.save(commit=False)
+			p = pickform.save(commit=False)
+			startdate = form.cleaned_data.get('startdate')
+			enddate = form.cleaned_data.get('enddate')
+			starttime = form.cleaned_data.get('starttime')
+			endtime = form.cleaned_data.get('endtime')
+			reason = form.cleaned_data.get('reason')
+			alltimeofftype = form.cleaned_data.get('alltimeofftype')
+			firststatus = 'Pending'
+			secondstatus = 'Pending'
+			finalstatus = 'Pending'
+			teachertimeofftype = alltimeofftype
+			nonteachertimeofftype = alltimeofftype
+			alluser = pickform.cleaned_data.get('pickuser')
+
+			def my_round(x):
+				return math.ceil(x*2)/2
+
+			start_date = startdate.day
+			end_date = enddate.day
+			
+
+			if starttime == None and endtime == None:
+				dur = end_date - start_date + 1
+				hr = (end_date - start_date + 1) * 24
+			elif starttime != None and endtime != None:
+				start_time = starttime.hour + starttime.minute/60
+				end_time = endtime.hour + endtime.minute/60
+				dur = end_date - start_date + (end_time-start_time)/8
+				hr = (end_date - start_date)*24 + end_time-start_time
+			
+			if nonteachertimeofftype == 'Over Time':
+				duration = hr * userid.ratio
+			else:
+				duration = my_round(dur)
+
+			print(alluser)
+			for stuff in alluser:
+				if stuff.is_nonteacher:
+					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus, finalstatus=finalstatus, nonteachertimeofftype=alltimeofftype, alltimeofftype=alltimeofftype,reason=reason, user=stuff, stafftype = "Nonteacher",duration=duration)
+					f.save()			
+					messages.success(request, f'Timeoff applied')
+				elif stuff.is_viceprincipal or stuff.is_teacher or stuff.is_principal or stuff.is_supervisor:	
+					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus, finalstatus=finalstatus, teachertimeofftype=alltimeofftype, alltimeofftype=alltimeofftype,reason=reason, user=stuff, stafftype = "Teacher",duration=duration)
+					f.save()			
+					messages.success(request, f'Timeoff applied')
+
+				send_mail(
+				'iLeave Confirmation' ,
+				'Hello '+stuff.username+ '! ' + request.user.username + ' has submitted an application for Sick leave on your behalf!' ,
+				'test@gmail.com',
+				[stuff.email],
+				)
+				send_mail(
+					'iLeave Confirmation' ,
+					'Thank you '+request.user.username+ '! You application for group application for Sick leave on your behalf!',
+					'test@gmail.com',
+					[stuff.email],
+					)
+			return redirect('success')
+	else:
+		form = ApplyForForm2()
+		pickform = PickerForm()
+
+	return render(request, "users/applyforapply2.html", {'form':form, 'pickform':pickform, 'userid':userid})
 
 @login_required
 def incrementallview(request, *args, **kwargs):
@@ -425,6 +570,16 @@ def incrementlistview(req):
 	return render(req, "users/incrementlistview.html", context)
 
 
+@login_required
+def groupapplylistview(req):
+
+	queryset = LeaveApplication.objects.filter(appliedby = req.user) # list of objects
+	context = {
+		"objec_list" : queryset
+	}
+	return render(req, "users/groupapplylistview.html", context)
+
+
 def success(req):
 	obj = LeaveApplication.objects.all()
 	context = {"object" : obj
@@ -470,12 +625,12 @@ def managerapprove(request, myid):
 
 @login_required
 def vplistview(req):
-	user = VicePrincipalDetail.objects.get(user = req.user)
+	users = VicePrincipalDetail.objects.get(user = req.user)
 	userid =  req.user.VicePrincipalDetail.allvp.all()
 	queryset = LeaveApplication.objects.exclude(user__id__in=userid.all()) # list of objects
 	context = {
 		"objec_list" : queryset,
-		"user" : user
+		"user" : users
 	}
 	return render(req, "users/vplistview.html", context)
 
@@ -638,6 +793,7 @@ def papprove(request, myid):
 						if obj.finalduration is None:
 							modify = obj.duration
 							applicant.sickleave = applicant.sickleave - abs(modify)
+							applicant.sickleavecounter = applicant.sickleavecounter + abs(modify)
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
@@ -647,6 +803,7 @@ def papprove(request, myid):
 						else:
 							modify = obj.finalduration
 							applicant.sickleave = applicant.sickleave - abs(modify)
+							applicant.sickleavecounter = applicant.sickleavecounter + abs(modify)
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
@@ -760,6 +917,7 @@ def papprove(request, myid):
 						if obj.finalduration is None:
 							modify = obj.duration
 							applicant.sickleave = applicant.sickleave - abs(modify)
+							applicant.sickleavecounter = applicant.sickleavecounter + abs(modify)
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
@@ -856,6 +1014,7 @@ def papprovedecided(request, myid):
 
 			elif obj.nonteachertimeofftype == 'Sick Leave':
 				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
+				applicant.sickleavecounter = applicant.sickleavecounter - abs(obj.finalduration)
 				obj.finalstatus = "Canceled"
 				u_form.save()
 				applicant.save()
@@ -885,6 +1044,7 @@ def papprovedecided(request, myid):
 				return redirect('plistview')
 			elif obj.teachertimeofftype == 'Sick Leave':
 				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
+				applicant.sickleavecounter = applicant.sickleavecounter - abs(obj.finalduration)
 				obj.finalstatus = "Canceled"
 				u_form.save()
 				applicant.save()
@@ -907,6 +1067,7 @@ def papprovedecided(request, myid):
 				return redirect('plistview')
 			elif obj.teachertimeofftype == 'Sick Leave':
 				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
+				applicant.sickleavecounter = applicant.sickleavecounter - abs(obj.finalduration)
 				obj.finalstatus = "Canceled"
 				u_form.save()
 				applicant.save()
@@ -929,6 +1090,7 @@ def papprovedecided(request, myid):
 				return redirect('plistview')
 			elif obj.teachertimeofftype == 'Sick Leave':
 				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
+				applicant.sickleavecounter = applicant.sickleavecounter - abs(obj.finalduration)
 				obj.finalstatus = "Canceled"
 				u_form.save()
 				applicant.save()
@@ -998,9 +1160,9 @@ def alllistview(req):
 		instance = queryset 
 		for row in instance:
 			if row.user.is_nonteacher:
-				writer.writerow([row.created_at, row.user.username, row.nonteachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.firststatus, row.secondstatus, row.finalstatus, row.finalcomment]) 
+				writer.writerow([row.created_at_date, row.user.username, row.nonteachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.firststatus, row.secondstatus, row.finalstatus, row.finalcomment]) 
 			else:
-				writer.writerow([row.created_at, row.user.username, row.teachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.firststatus, row.secondstatus, row.finalstatus, row.finalcomment]) 
+				writer.writerow([row.created_at_date, row.user.username, row.teachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.firststatus, row.secondstatus, row.finalstatus, row.finalcomment]) 
 		return response 
 	context = {
 		"myFilter" : myFilter,

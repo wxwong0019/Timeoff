@@ -25,13 +25,7 @@
           {% else %}
           <p class="text-secondary">Non Teacher Type of Leave : {{ obj.nonteachertimeofftype }}</p>
 
-            {% if obj.nonteachertimeofftype == 'Annual Leave' %}
-              <p class="text-secondary">Annual Leave Balance: {{ applicant.annualleave }}</p>
-            {% elif obj.nonteachertimeofftype == 'Sick Leave'%}
-              <p class="text-secondary">Sick Leave Balance: {{ applicant.sickleave }}</p>
-            {% elif obj.nonteachertimeofftype == 'Over Time'%}
-              <p class="text-secondary">Compensated Leave Balance: {{ applicant.compensatedleave }}</p>
-            {% endif %}
+            
           {% endif %}
           <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
           <p class="text-secondary">End Date : {{ obj.enddate }}</p>
@@ -60,7 +54,7 @@
       <div class = 'colbalance'>
             {% if applicant.is_nonteacher %}
             <h4> Balance for : {{ applicant.user }}</h4>
-            <table style="width:30%">
+            <table style="width:90%">
               <tr class = 'table'>
                     <td> Sick Leave Balance</td>
                     <td> {{ applicant.sickleave }} day(s)</td>
@@ -80,7 +74,7 @@
             </table><br><br>
             {% else %}
             <h4> Balance of : {{ applicant.user }}</h4><hr>
-            <table style="width:30%">
+            <table style="width:90%">
               <tr class = 'table'>
                     <td> Sick Leave Balance</td>
                     <td> {{ applicant.sickleave }} day(s)</td>

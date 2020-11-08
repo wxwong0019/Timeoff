@@ -15,7 +15,7 @@
 		{% csrf_token %}
 
   	<fieldset class='form-group'>
-      <h3>Emergency Sick Leave</h3>
+      <h3>Emergency Leave</h3>
     <hr/>
   		<!-- <legend class='border-bottom mb-4'> Ka Chi Staff Register </legend> -->
     <div class="start">
@@ -28,10 +28,14 @@
       <div class="endtimefield">{{ form.enddate|as_crispy_field }}</div>
       <div class="endtimefield hide" id='input2'>{{ form.endtime|as_crispy_field }}</div>
     </div>
+    <div>  
+      <div class="endtimefield">{{ form.emergencytype|as_crispy_field }}</div>
+  
+    </div>
     <div class="check">
     <input  type="checkbox" id="checkbox1" onclick="changeHideStatus()" />
     <label for="checkbox1">Time Option</label>
-    </div>
+    </div><br/>
     <!-- <div class="start">
     
       <div class="starttimefield">{{ form.startdate|as_crispy_field }}</div>

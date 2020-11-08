@@ -37,7 +37,7 @@
 {% for stuff in objec_list %}
 	{{stuff.pickmanager}}
 	{% if stuff.pickmanager == None %}
-		{% if stuff.finalstatus == "Pending" %}
+		{% if stuff.finalstatus == "Pending" and stuff.firststatus == "Pending"%}
 			<tr class = 'table'>
 				<td><a href = '{{ stuff.get_absolute_url }}'> Check detail </a></td>
 				<td> {{ stuff.created_at }}</td>
@@ -55,7 +55,7 @@
 			</tr>
 		{% endif %}	
 	{% elif stuff.pickmanager == user_manager %}
-		{% if stuff.finalstatus == "Pending" %}
+		{% if stuff.finalstatus == "Pending" and stuff.firststatus == "Pending"%}
 			<tr class = 'table'>
 				<td><a href = '{{ stuff.get_absolute_url }}'> Check detail </a></td>
 				<td> {{ stuff.created_at }}</td>

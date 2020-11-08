@@ -295,6 +295,7 @@ class GroupApplyForm(forms.ModelForm):
 		fields = [
 			'teachertimeofftype',
 			"nonteachertimeofftype",
+			"officialtype",
 			'startdate',
 			'starttime',
 			'enddate',
@@ -396,6 +397,112 @@ class ApplyForForm(forms.ModelForm):
 		fields = [
 			'teachertimeofftype',
 			"nonteachertimeofftype",
+			'emergencytype',
+			"firststatus",
+			"secondstatus",
+			'finalstatus',
+			'startdate',
+			'starttime',
+			'enddate',
+			'endtime',
+			'reason',
+			'file'
+		]
+
+	def clean(self):
+		startdate = self.cleaned_data.get('startdate')
+		enddate = self.cleaned_data.get('enddate')
+		starttime = self.cleaned_data.get('starttime')
+		endtime = self.cleaned_data.get('endtime')
+		if starttime != None and endtime != None:
+			
+			if startdate.day < enddate.day and startdate.month == enddate.month:
+				print('111111111')
+				
+			elif startdate.month < enddate.month:
+				print('22222222')
+				return endtime
+			elif startdate.month == enddate.month and startdate.day == enddate.day:
+				if starttime.minute  >=  endtime.minute and starttime.hour  >=  endtime.hour:
+					raise ValidationError("End date must be later than start date")
+				elif starttime.hour  >  endtime.hour:
+					raise ValidationError("End date must be later than start date")
+			else:
+				print('4444444444')
+				raise ValidationError("End date must be later than start date")
+	
+		elif starttime == None and endtime == None:
+			if startdate.day <= enddate.day and startdate.month == enddate.month:
+				print('5555555')
+				return endtime
+			elif startdate.month < enddate.month:
+				print('666666666')
+				return endtime
+			else:
+				print('7777777')
+				raise ValidationError("End date must be later than start date")
+		else:
+			raise ValidationError("End date must be later than start date")
+
+class ApplyForForm2(forms.ModelForm):
+	
+	startdate = forms.DateField(label= 'From Date',widget=DatePickerInput(
+		options={
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'start-time',
+			 'placeholder' : "Pick a Date!",
+			 })
+			)
+						
+	starttime = forms.TimeField(required=False, label= 'From Time',widget=TimePickerInput(
+		options={"stepping" : 5,
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'starttime',
+			 'placeholder' : "Pick a Time!",
+			 })
+			)
+
+	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
+		options={
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'start-time',
+			 'placeholder' : "Pick a Date!",
+			 })
+			)
+						
+	endtime = forms.TimeField(required=False ,label= 'To Time',widget=TimePickerInput(
+		options={"stepping" : 5,
+				"toolbarPlacement" : 'top',
+				},
+		attrs={
+			 'class': 'starttime',
+			 'placeholder' : "Pick a Time!",
+			 })
+			)
+	teachertimeofftype = forms.CharField(required=False)
+	nonteachertimeofftype = forms.CharField(required=False)
+	firststatus = forms.CharField(required=False)
+	secondstatus = forms.CharField(required=False)
+	finalstatus = forms.CharField(required=False)
+
+	reason	= forms.CharField(required=False,
+		widget=forms.Textarea(
+			attrs={
+				"cols" : 50,
+				"rows" : 3
+		}))		 
+	class Meta:
+		model = LeaveApplication
+		fields = [
+			'teachertimeofftype',
+			"nonteachertimeofftype",
+			'alltimeofftype',
 			"firststatus",
 			"secondstatus",
 			'finalstatus',

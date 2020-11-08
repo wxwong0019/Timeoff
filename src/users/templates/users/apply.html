@@ -15,7 +15,7 @@
 		{% csrf_token %}
 
   	<fieldset class='form-group'>
-      <h3>Time Off Request</h3><hr>
+      <h3>Leave Request</h3><hr>
       <div class = 'colforapplyandbalance'>
         <div class = 'colapply'>
             <!-- <legend class='border-bottom mb-4'> Ka Chi Staff Register </legend> -->
@@ -54,18 +54,18 @@
         <div class = 'colbalance'>
             {% if user.is_nonteacher %}
             <h4> Balance for : {{ userid.user }}</h4>
-            <table style="width:30%">
+            <table style="width:100%">
               <tr class = 'table'>
-                    <td> Sick Leave Balance</td>
-                    <td> {{ userid.sickleave }} day(s)</td>
+                    <td> Sick Leave Taken</td>
+                    <td> {{ userid.sickleavecounter }} day(s)</td>
               </tr>
               <tr class = 'table'>
                     <td> Annual Leave Balance</td>
                     <td> {{ userid.annualleave }} day(s)</td>
               </tr>
               <tr class = 'table'>
-                    <td> Compensated Leave Balance</td>
-                    <td> {{ userid.compensatedleave }} day(s)</td>
+                    <td> Over Time Balance</td>
+                    <td> {{ userid.compensatedleave }} hours</td>
               </tr>
               <tr class = 'table'>
                     <td> Non-Teacher Ratio</td>
@@ -73,11 +73,11 @@
               </tr>
             </table><br><br>
             {% else %}
-            <h4> Balance of : {{ userid.user }}</h4><hr>
-            <table style="width:30%">
+            <h4> Balance of : {{ userid.user }}</h4>
+            <table style="width:100%">
               <tr class = 'table'>
-                    <td> Sick Leave Balance</td>
-                    <td> {{ userid.sickleave }} day(s)</td>
+                    <td> Sick Leave Taken</td>
+                    <td> {{ userid.sickleavecounter }} day(s)</td>
               </tr>
               <tr class = 'table'>
                     <td> Casual Leave Balance</td>
@@ -85,12 +85,11 @@
               </tr>
             </table><br><br>
             {% endif %}
-              <hr/>
+          
         </div>
         
     </div>
     <div class="reason">{{ form.reason|as_crispy_field }}</div>
-    <div class="file">{{ form.file|as_crispy_field }}</div>
     <script>
       $(document).ready(function(){
         $("#checkbox1").prop('checked', false);;
@@ -98,22 +97,40 @@
 
       let input1;
       let input2;
+
       function changeHideStatus(){
-        
         if(document.getElementById("checkbox1").checked == true){
 
           document.getElementById("input1").setAttribute("class", "starttimefield");
           document.getElementById("input2").setAttribute("class", "endtimefield");
+
+          document.getElementById("id_starttime").value = "";
+          document.getElementById("id_endtime").value = "";
+          console.log(document.getElementById("id_endtime").value)
+          console.log(document.getElementById("id_endtime").value)
+          console.log(document.getElementById("id_nonteachertimeofftype").value)
+
         }
         else{
           document.getElementById("input1").setAttribute("class", "hide starttimefield");
           document.getElementById("input2").setAttribute("class", "hide endtimefield");
-          
-          document.getElementById("input1").value = "13:11";
+          console.log(document.getElementById("id_endtime").value)
+        console.log(document.getElementById("id_endtime").value)
+        console.log(document.getElementById("id_nonteachertimeofftype").value)
+         
         }
+        
       }
       function showDiv(divId, element){
         document.getElementById(divId).style.display = (element.value == 'Official Leave (Outside)' || element.value == 'Official Leave (In School)' || element.value == 'Over Time') ? 'block' : 'none';
+
+        if(element.value == 'Over Time'){
+          document.getElementById("checkbox1").checked = true;
+          changeHideStatus();
+        } else{
+          document.getElementById("checkbox1").checked = false;
+          changeHideStatus();
+        }
       }
     </script>
 
@@ -127,11 +144,7 @@
       <button type="submit" class="btn btn-primary">Apply</button>
     </div>
 	</form>
-<div class="border-top pt-3">
-	<small class='text-muted'>
-		Already Have An Account? <a class='ml-2' href="{% url 'login' %}">Sign In</a>
-	</small>
-</div>
+
   </div>
   
 

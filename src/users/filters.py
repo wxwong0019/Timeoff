@@ -34,7 +34,7 @@ class LeaveApplicationFilter(django_filters.FilterSet):
 		model = LeaveApplication
 		fields = [
 		
-		'nonteachertimeofftype',
+		'alltimeofftype',
 		'stafftype',
 		'user',
 		'created_at',

@@ -9,31 +9,32 @@
 {% block content %}
 
 <div class = 'profiledetail'>
+  
   {% if user.is_nonteacher %}
-  <h4> Profile of : {{ userid.user }}</h4>
-  <h5> Sick Leave Balance (days): {{ userid.sickleave }}</h5>
+  <h3> My Application </h3>
+  <h5> English Name: {{ userid.user }}</h5>
+  <h5> Sick Leave Taken (days): {{ userid.sickleavecounter }}</h5>
   <h5> Annual Leave Balance (days): {{ userid.annualleave }}</h5>
   <h5> Compensated Leave Balance (hrs): {{ userid.compensatedleave }}</h5>
-  <h5> Non-Teacher Ratio: {{ userid.ratio }}</h5><br><br>
   {% else %}
   <h4> Profile of : {{ userid.user }}</h4>
-  <h5> Sick Leave Balance (days): {{ userid.sickleave }}</h5>
-  <h5> Casual Leave Balance (days): {{ userid.casualleave }}</h5><br><br>
+  <h5> Sick Leave Taken (days): {{ userid.sickleavecounter }}</h5>
+  <h5> Over Time Balance (hrs): {{ userid.casualleave }}</h5><br><br>
   {% endif %}
 </div>
 <hr>
 
-<form method = "get">
+<!-- <form method = "get">
 
   {{myFilter.form|crispy}}
 
   <button class = "btn btn-primary" type = "submit">Search</button>
 </form>
-
+ -->
 <div class = 'profileapplication'>
 
-  <h4>Pre-Prending Application : </h4>
-  <table style="width:90%">
+  <h4 style="font-weight: bold; color: red"> You need to confirm the following Leave : </h4>
+  <table style="width:100%">
   <tr class = 'table'>
 
       <th>Apply Date/Time</th>
@@ -43,7 +44,7 @@
       <th>Direct Supervisor</th>
       <th>Vice Principal Decision</th>
       <th>Principal Decision</th>
-      <th>Detail</th>
+      <th style="font-weight: bold; color: red">Action Required</th>
     </tr>
   {% for stuff in applicant %}
     {% if stuff.finalstatus == "Action Required" %}
@@ -53,22 +54,31 @@
           <td> {{ stuff.created_at }}</td>
           <td> {{ stuff.nonteachertimeofftype }}</td>
           <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-          <td> {{ stuff.duration }}
+
+          {% if stuff.nonteachertimeofftype == "Over Time" %}
+            <td> {{ stuff.duration }} hrs</td>
+          {% else %}
+            <td> {{ stuff.duration }} days</td>
+          {% endif %}
           <td> {{ stuff.firststatus }}</td>
           <td> {{ stuff.secondstatus }}</td>
           <td> {{ stuff.finalstatus }}</td>
-          <td><a href = "{% url 'profileapprove' myid=stuff.id %}"> Please</a></td>
+          <td><a href = "{% url 'profileapprove' myid=stuff.id %}">Please Confirm</a></td>
         </tr>
     {% else %}
       <tr class = 'table'>
         <td> {{ stuff.created_at }}</td>
         <td> {{ stuff.teachertimeofftype }}</td>
         <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-        <td> {{ stuff.duration }}
+        {% if stuff.teachertimeofftype == "Over Time" %}
+            <td> {{ stuff.duration }} hrs</td>
+          {% else %}
+            <td> {{ stuff.duration }} days</td>
+          {% endif %}
         <td> {{ stuff.firststatus }}</td>
         <td> {{ stuff.secondstatus }}</td>
         <td> {{ stuff.finalstatus }}</td>
-        <td><a href = "{% url 'profileapprove' myid=stuff.id %}"> Please</a></td>
+        <td><a href = "{% url 'profileapprove' myid=stuff.id %}">Please Confirm</a></td>
       </tr>
     {% endif %}
     {% endif %}
@@ -76,7 +86,7 @@
   </table><br><br>
 
   <h4>Pending Application : </h4>
-  <table style="width:90%">
+  <table style="width:100%">
   <tr class = 'table'>
 
       <th>Apply Date/Time</th>
@@ -86,7 +96,7 @@
       <th>Direct Supervisor</th>
       <th>Vice Principal Decision</th>
       <th>Principal Decision</th>
-      <th>Detail</th>
+      <th>Cancel</th>
     </tr>
   {% for stuff in applicant %}
     {% if stuff.finalstatus == "Pending" %}
@@ -96,22 +106,30 @@
           <td> {{ stuff.created_at }}</td>
           <td> {{ stuff.nonteachertimeofftype }}</td>
           <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-          <td> {{ stuff.duration }}
+          {% if stuff.nonteachertimeofftype == "Over Time" %}
+            <td> {{ stuff.duration }} hrs</td>
+          {% else %}
+            <td> {{ stuff.duration }} days</td>
+          {% endif %}
           <td> {{ stuff.firststatus }}</td>
           <td> {{ stuff.secondstatus }}</td>
           <td> {{ stuff.finalstatus }}</td>
-          <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.finalstatus }}</a></td>
+          <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> Cancel</a></td>
         </tr>
     {% else %}
       <tr class = 'table'>
         <td> {{ stuff.created_at }}</td>
         <td> {{ stuff.teachertimeofftype }}</td>
         <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-        <td> {{ stuff.duration }}
+        {% if stuff.teachertimeofftype == "Over Time" %}
+            <td> {{ stuff.duration }} hrs</td>
+          {% else %}
+            <td> {{ stuff.duration }} days</td>
+          {% endif %}
         <td> {{ stuff.firststatus }}</td>
         <td> {{ stuff.secondstatus }}</td>
         <td> {{ stuff.finalstatus }}</td>
-        <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.finalstatus }}</a></td>
+        <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> Cancel</a></td>
       </tr>
     {% endif %}
     {% endif %}
@@ -119,7 +137,7 @@
   </table><br><br>
 
   <h4>Final Decision : </h4>
-  <table style="width:90%">
+  <table style="width:100%">
   <tr class = 'table'>
 
       <th>Apply Date/Time</th>
@@ -139,22 +157,30 @@
           <td> {{ stuff.created_at }}</td>
           <td> {{ stuff.nonteachertimeofftype }}</td>
           <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-          <td> {{ stuff.finalduration }}
+          {% if stuff.nonteachertimeofftype == "Over Time" %}
+            <td> {{ stuff.finalduration }} hrs</td>
+          {% else %}
+            <td> {{ stuff.finalduration }} days</td>
+          {% endif %}
           <td> {{ stuff.firststatus }}</td>
           <td> {{ stuff.secondstatus }}</td>
           <td> {{ stuff.finalstatus }}</td>
-          <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.finalstatus }}</a></td>
+          <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.appliedby }} </a></td>
         </tr>
     {% else %}
       <tr class = 'table'>
         <td> {{ stuff.created_at }}</td>
         <td> {{ stuff.teachertimeofftype }}</td>
         <td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-        <td> {{ stuff.finalduration }}
+        {% if stuff.nonteachertimeofftype == "Over Time" %}
+            <td> {{ stuff.finalduration }} hrs</td>
+          {% else %}
+            <td> {{ stuff.finalduration }} days</td>
+          {% endif %}
         <td> {{ stuff.firststatus }}</td>
         <td> {{ stuff.secondstatus }}</td>
         <td> {{ stuff.finalstatus }}</td>
-        <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.finalstatus }}</a></td>
+        <td><a href = "{% url 'profiledetail' myid=stuff.id %}"> {{ stuff.appliedby }} </a></td>
       </tr>
     {% endif %}
     {% endif %}

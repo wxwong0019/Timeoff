@@ -4,6 +4,8 @@
 
 {{ object_list }}
 
+<div>
+<div style = "font-weight: lighter; font-style:italic;"> View Application > <a href="{% url 'userlistview' %}">All Users </a> > {{ obj.username }} </div> <br>
 <h4> Name : {{ obj.username }}</h4>
 <table style="width:90%">
 <tr class = 'table'>
@@ -41,5 +43,6 @@
 {% endfor %}
 
 </table>
+</td>
 		
 {% endblock %}

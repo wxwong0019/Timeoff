@@ -6,6 +6,7 @@
 <!--  -->
 
     <div class="content-section">
+      <div style = "font-weight: lighter; font-style:italic;"> <a href="{% url 'profile' %}">My Application</a> > Detail</div>
       <div class="media">
         <div class="media-body">
           <h4 class="account-heading">Applicant : {{ obj.user.username }}</h4>
@@ -44,7 +45,9 @@
           <p class="text-secondary">Vice Principal Approval Status : {{ obj.secondstatus }}</p>
           <p class="text-secondary">Vice Principal comment : {{ obj.secondcomment }}</p><br>
           <h4 class="account-heading">Principal Validation:</h4>    
-          <p class="text-secondary">Principal Approval Status : {{ obj.finalstatus }}</p>
+          <p class="text-secondary">
+            Principal Approval Status : {{ obj.finalstatus }}
+          </p>
           <p class="text-secondary">Principal comment : {{ obj.finalcomment }}</p><br>
         </div>
       </div>

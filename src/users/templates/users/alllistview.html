@@ -7,11 +7,11 @@
 {% endblock %}
  
 {% block content %}
+<div style = "font-weight: lighter; font-style:italic;"> View Application > All Applicaitons </div>
 <div>
-
+<br>	
 <input  type="checkbox" id="checkbox1" onclick="changeHideStatus()"/>
 <label for="checkbox1">Show Filter</label><br>	
-
 <div class="endtimefield hide" id='input2'>
 	<form method = "get">
 	  {{myFilter.form|crispy}}
@@ -40,14 +40,14 @@
     <th>Supervisor Decision</th>
     <th>Vice Principal Decision</th>
     <th >Principal Decision</th>
-    <th >Detail</th>
+    <th >Cancel</th>
   </tr>
 {% for stuff in objec_list %}
 		{% if stuff.user.is_nonteacher %}
 		<tr class = 'table'>
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
-			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {{ stuff.alltimeofftype }}</td>
 			{% if stuff.starttime == None and stuff.endtime == None %}
 				<td> {{ stuff.startdate}}</td>
 				<td> {{ stuff.enddate}}</td>
@@ -64,7 +64,7 @@
 		<tr class = 'table'>
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
-			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {{ stuff.alltimeofftype }}</td>
 			{% if stuff.starttime == None and stuff.endtime == None %}
 				<td> {{ stuff.startdate}}</td>
 				<td> {{ stuff.enddate}}</td>

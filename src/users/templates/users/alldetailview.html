@@ -6,6 +6,7 @@
 <!--  -->
 
     <div class="content-section">
+      <div style = "font-weight: lighter; font-style:italic;"> View Application > <a href="{% url 'alllistview' %}">All Applications </a> > {{ obj.user.username }}'s Application </div> <br>
       <div class="media">
         <div class="media-body">
           <h4 class="account-heading">Applicant : {{ obj.user.username }}</h4>

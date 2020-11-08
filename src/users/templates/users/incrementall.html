@@ -10,11 +10,11 @@
 <!--  -->
 
 <div class="content-section">
-      
+  <div style = "font-weight: lighter; font-style:italic;"> Leave Increment > Monthly Sick Leave Increment</div>  
   <form method = 'POST' enctype='multipart/form-data' onsubmit="return confirm('Just want to make sure DID YOU DOUBLE CHECK?');"> 
     {% csrf_token %}
     <fieldset class='form-group'>
-      <legend class='border-bottom mb-4'> All Users Monthly Increment </legend>
+      <legend class='border-bottom mb-4'> Monthly Sick Leave Increment </legend>
       {{ form.created_at|as_crispy_field }}
 
     </fieldset>
