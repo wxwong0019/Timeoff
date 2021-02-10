@@ -29,7 +29,7 @@
 		<tr class = 'table'>
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
-			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {{ stuff.alltimeofftype }}</td>
 			{% if stuff.starttime == None and stuff.endtime == None %}
 				<td> {{ stuff.startdate}}</td>
 				<td> {{ stuff.enddate}}</td>
@@ -46,7 +46,7 @@
 		<tr class = 'table'>
 			<td> {{ stuff.created_at }}</td>
 			<td> {{ stuff.user.username }} </td>
-			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {{ stuff.alltimeofftype }}</td>
 			{% if stuff.starttime == None and stuff.endtime == None %}
 				<td> {{ stuff.startdate}}</td>
 				<td> {{ stuff.enddate}}</td>

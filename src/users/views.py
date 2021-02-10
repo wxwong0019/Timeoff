@@ -1,5 +1,10 @@
 from django.shortcuts import render, redirect,  get_object_or_404
 from django.contrib import messages
+from django.template.loader import render_to_string
+from datetime import *
+from django.core.exceptions import ValidationError
+from django.contrib.auth import *
+from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.db.models import Q
@@ -9,6 +14,7 @@ from .forms import *
 from customstaff.models import *
 from django.http import HttpResponse 
 import csv
+import decimal
 # Create your views here.
 # def register(request):
 # 	if request.method == 'POST':
@@ -25,6 +31,13 @@ import csv
 # 		form = UserRegisterForm()
 
 # 	return render(request, 'users/register.html', {'form': form})
+
+def logout_view(request):
+    logout(request)
+    return redirect("login")
+
+
+
 @login_required
 def change_password(request):
     if request.method == 'POST':
@@ -44,9 +57,12 @@ def change_password(request):
 
 @login_required
 def profile(request):
-
-	test = LeaveApplication.objects.filter(user=request.user)
-	if request.user.is_nonteacher:
+	useri = request.user
+	test = LeaveApplication.objects.filter(Q(user=request.user) | Q(users__in=[request.user]))
+	# groupapplieduser = LeaveApplication.objects.filter(users__in=[request.user])
+	if request.user.is_secretary:
+		userid = SecretaryDetail.objects.get(user = request.user)
+	elif request.user.is_nonteacher and not request.user.is_supervisor:
 		userid = NonTeachingStaffDetail.objects.get(user = request.user)
 	elif request.user.is_supervisor:
 		userid = SupervisorDetail.objects.get(user = request.user)
@@ -65,7 +81,9 @@ def profile(request):
 	context = {
 		'applicant':applicant,
 		'userid':userid,
-		'myFilter' : myFilter
+		'myFilter' : myFilter,
+		'user' : useri,
+		# 'groupapplieduser' : groupapplieduser
 	}
 	return render(request, 'users/profile.html', context)
 
@@ -73,10 +91,67 @@ def profile(request):
 def profiledetail(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
+	userid=obj.user
+	if obj.user.is_secretary:
+		applicant = SecretaryDetail.objects.get(user = userid)
+	elif obj.user.is_nonteacher and not obj.user.is_supervisor:
+		applicant = NonTeachingStaffDetail.objects.get(user = userid)
+	elif obj.user.is_supervisor:
+		applicant = SupervisorDetail.objects.get(user = userid)
+	elif obj.user.is_viceprincipal:
+		applicant = VicePrincipalDetail.objects.get(user = userid)
+	else:
+		applicant = TeachingStaffDetail.objects.get(user = userid)
+
+	
 
 	if request.method == 'POST':
+		if request.user.is_nonteacher:
+			form = NonTeacherApplyForm(request.POST, instance=obj)
+			print("nonteacher")
+		else:
+			form = TeacherApplyForm(request.POST, instance=obj)	
+			print("teacher")
+
 		u_form = UserCancelForm(request.POST, instance=obj)
-		if u_form.is_valid(): 
+		
+		if 'modify' in request.POST and form.is_valid() :
+			form.save()
+			# p = pickform.save(commit=False)
+			obj.startdate = form.cleaned_data.get('startdate')
+			obj.enddate = form.cleaned_data.get('enddate')
+			obj.starttime = form.cleaned_data.get('starttime')
+			obj.endtime = form.cleaned_data.get('endtime')
+			obj.reason = form.cleaned_data.get('reason')
+			obj.pickvp = form.cleaned_data.get('pickvp')
+
+			if request.user.is_nonteacher:
+				obj.nonteachertimeofftype = form.cleaned_data.get('nonteachertimeofftype')
+				obj.pickmanager = form.cleaned_data.get('pickmanager')
+			else:
+				obj.teachertimeofftype = form.cleaned_data.get('teachertimeofftype')
+			
+			obj.period = form.cleaned_data.get('period')
+			
+			def my_round(x):
+				return math.ceil(x*2)/2
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(obj.startdate), date_format)
+			end_date = datetime.datetime.strptime(str(obj.enddate), date_format)
+
+			if obj.starttime == None and obj.endtime == None:
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
+			elif obj.starttime != None and obj.endtime != None:
+				start_time = obj.starttime.hour + obj.starttime.minute/60
+				end_time = obj.endtime.hour + obj.endtime.minute/60
+				dur = (end_date - start_date).days + (end_time-start_time)/8
+				hr = (end_date - start_date).days*24 + end_time-start_time
+			obj.duration = my_round(dur)
+						
+			obj.save()
+			messages.success(request, f'Modified!')
+		elif u_form.is_valid() and 'cancel' in request.POST:
 			if obj.finalstatus == "Pending" and obj.secondstatus == "Pending" and obj.firststatus == "Pending":
 
 				obj.firststatus = "Canceled"
@@ -84,14 +159,19 @@ def profiledetail(request, myid):
 				obj.finalstatus = "Canceled"
 				u_form.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
-				return redirect('profile')
-	
+				messages.success(request, f'Success')
+				return redirect('profile')	
 	else:
 		u_form = UserCancelForm(instance=obj)
+		if request.user.is_nonteacher:
+			form = NonTeacherApplyForm( instance=obj)
+		else:
+			form = TeacherApplyForm( instance=obj)
 	context = {
 		'obj' : obj,
-		'u_form' : u_form
+		'u_form' : u_form,
+		'applicant' :applicant,
+		'form' : form
 	}
 	return render(request, 'users/profiledetail.html', context)
 
@@ -105,10 +185,11 @@ def profileapprove(request, myid):
 		if u_form.is_valid():
 			obj.firststatus = 'Pending'
 			obj.secondstatus = 'Pending'
+			obj.secretarystatus = 'Pending'
 			obj.finalstatus = 'Pending'
 			# u_form.save()
 			obj.save()
-			messages.success(request, f'Your file Has Been Updated')
+			messages.success(request, f'Success')
 			return redirect('profile')
 	
 	else:
@@ -125,32 +206,45 @@ def login_success(request):
 	"""
 	Redirects users based on whether they are in the admins group
 	"""
-	if request.user.type == User.Types.NONTEACHINGSTAFF:
+	if request.user.type == User.Types.NONTEACHINGSTAFF and request.user.type != User.Types.SECRETARY:
 		# user is an admin
-		messages.success(request, f'非教職員登入')
+		messages.success(request, f'Welcome')
 		return redirect("nonteacherapply")
-	elif request.user.type == User.Types.SUPERVISOR:
+	elif request.user.type == User.Types.SECRETARY:
+		messages.success(request, f'Welcome')
+		return redirect("secretarylistview")
+	elif request.user.type == User.Types.SUPERVISOR and request.user.is_teacher:
 		# user is an admin
-		messages.success(request, f'主管登入')
-		return redirect("supervisorapply")
+		messages.success(request, f'Welcome')
+		return redirect("teacherapply")
+	elif request.user.type == User.Types.SUPERVISOR and request.user.is_nonteacher:
+		# user is an admin
+		messages.success(request, f'Welcome')
+		return redirect("nonteacherapply")
 	elif request.user.type == User.Types.VICEPRINCIPAL:
 		# user is an admin
-		messages.success(request, f'副校長登入')
+		messages.success(request, f'Welcome')
 		return redirect("teacherapply")
 	elif request.user.type == User.Types.PRINCIPAL:
 		# user is an admin
-		messages.success(request, f'校長登入')
+		messages.success(request, f'Welcome')
 		return redirect("plistview")
 	else:
-		messages.success(request, f'教職員登入')
+		messages.success(request, f'Welcome')
 		return redirect("teacherapply")
 
 @login_required
 def nonteacherapply(request):
-	userid = NonTeachingStaffDetail.objects.get(user = request.user)
+	if request.user.is_secretary:
+		userid = SecretaryDetail.objects.get(user = request.user)
+	elif request.user.is_supervisor and request.user.is_nonteacher:
+		userid = SupervisorDetail.objects.get(user = request.user)
+	else:
+		userid = NonTeachingStaffDetail.objects.get(user = request.user)
+
 	if request.method == 'POST':
 		form = NonTeacherApplyForm(request.POST, request.FILES)
-		print(request.POST['startdate'])
+		
 		if form.is_valid():
 
 
@@ -162,42 +256,71 @@ def nonteacherapply(request):
 			endtime = form.cleaned_data.get('endtime')
 			reason = form.cleaned_data.get('reason')
 			nonteachertimeofftype = form.cleaned_data.get('nonteachertimeofftype')
-			pickmanager = form.cleaned_data.get('pickmanager')
+			pickmanager = form.cleaned_data.get('pickmanager') 
+			period = form.cleaned_data.get('period')
+			
+			period_list = "";
+			for stuff in period:
+				period_list+= stuff + ", ";
+
+			if pickmanager == None and not user.is_supervisor:
+				superv = SupervisorDetail.objects.get(user__username=request.user.NonTeachingStaffDetail.supervisor)
+				pickmanager = User.objects.get(username = superv.user)
+				send_mail(
+				'Leave Application Confirmation' ,
+				'Hello '+pickmanager.username+ '. There is an application needs your attention. Please login and check under Manage Pending Application http://a.kachi.edu.hk/managerlistview/',
+				'test@gmail.com',
+				[pickmanager.email],
+				)
+			else:
+				pickmanager = None
+
 			pickvp = form.cleaned_data.get('pickvp')
 			stafftype = "Nonteacher"
-
+			
+			template = render_to_string('users/email_staffapply.html', {
+				'username':request.user.username,
+				'type':nonteachertimeofftype,
+				'startdate':startdate,
+				'enddate':enddate,
+				'period':period_list,
+				'reason':reason
+				})
 			def my_round(x):
 				return math.ceil(x*2)/2
-
-			start_date = startdate.day
-			end_date = enddate.day
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(startdate), date_format)
+			end_date = datetime.datetime.strptime(str(enddate), date_format)
+			# start_date = startdate.day
+			# end_date = enddate.day
 			
 
 			if starttime == None and endtime == None:
-				dur = end_date - start_date + 1
-				hr = (end_date - start_date + 1) * 24
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
 			elif starttime != None and endtime != None:
 				start_time = starttime.hour + starttime.minute/60
 				end_time = endtime.hour + endtime.minute/60
-				dur = end_date - start_date + (end_time-start_time)/8
-				hr = (end_date - start_date)*24 + end_time-start_time
+				dur = (end_date - start_date).days + (end_time-start_time)/8
+				hr = (end_date - start_date).days*24 + end_time-start_time
 			
 			if nonteachertimeofftype == 'Over Time':
-				duration = hr * userid.ratio
+				duration = decimal.Decimal(hr) * userid.ratio
 			else:
 				duration = my_round(dur)
 				
 
-			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, nonteachertimeofftype=nonteachertimeofftype, alltimeofftype=nonteachertimeofftype,reason=reason, user=user, stafftype=stafftype, pickvp=pickvp, pickmanager=pickmanager, duration=duration)
+			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, nonteachertimeofftype=nonteachertimeofftype, alltimeofftype=nonteachertimeofftype,reason=reason, user=user, stafftype=stafftype, pickvp=pickvp, pickmanager=pickmanager, duration=duration, period = period)
 			a_form.save()			
 			form.save_m2m()
-			messages.success(request, f'Non Teacher timeoff applied')
+			messages.success(request, f'Successfully Applied')
 			send_mail(
-				'iLeave Confirmation' ,
-				'Thank you '+request.user.username+ '! You application for '+request.POST['nonteachertimeofftype']+' is under proccess!',
+				'Leave Application Confirmation' ,
+				template,
 				'test@gmail.com',
-				['request.user.email'],
+				[request.user.email],
 				)
+			
 			return redirect('success')
 	else:
 		form = NonTeacherApplyForm()
@@ -206,14 +329,21 @@ def nonteacherapply(request):
 
 @login_required
 def teacherapply(request):
-	if request.user.is_supervisor:
+	if request.user.is_supervisor and request.user.is_teacher:
 		userid = SupervisorDetail.objects.get(user = request.user)
+		firststatus = "Approved"
+		secondstatus = "Pending"
 	elif request.user.is_viceprincipal:
 		userid = VicePrincipalDetail.objects.get(user = request.user)
-	else:
+		firststatus = "Approved"
+		secondstatus = "Approved"
+	elif request.user.is_teacher:
 		userid = TeachingStaffDetail.objects.get(user = request.user)
+		firststatus = "Pending"
+		secondstatus = "Pending"
+	
 	if request.method == 'POST':
-		form = TeacherApplyForm(request.POST, request.FILES)
+		form = TeacherApplyForm(request.POST)
 		print(request.POST['startdate'])
 		if form.is_valid():
 
@@ -226,36 +356,49 @@ def teacherapply(request):
 			reason = form.cleaned_data.get('reason')
 			teachertimeofftype = form.cleaned_data.get('teachertimeofftype')
 			pickvp = form.cleaned_data.get('pickvp')
+			period = form.cleaned_data.get('period')
 			stafftype = "Teacher"
 
 			def my_round(x):
 				return math.ceil(x*2)/2
-
-			start_date = startdate.day
-			end_date = enddate.day
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(startdate), date_format)
+			end_date = datetime.datetime.strptime(str(enddate), date_format)
+			# start_date = startdate.day
+			# end_date = enddate.day
 			
 
 			if starttime == None and endtime == None:
-				dur = end_date - start_date + 1
-				hr = (end_date - start_date + 1) * 24
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
 			elif starttime != None and endtime != None:
 				start_time = starttime.hour + starttime.minute/60
 				end_time = endtime.hour + endtime.minute/60
-				dur = end_date - start_date + (end_time-start_time)/8
-				hr = (end_date - start_date)*24 + end_time-start_time
+				dur = (end_date - start_date).days + (end_time-start_time)/9
+				hr = (end_date - start_date).days*24 + end_time-start_time
 			
 			duration = my_round(dur)
 
-			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, alltimeofftype=teachertimeofftype, reason=reason, user=user, stafftype=stafftype, pickvp=pickvp,duration=duration)
+			a_form = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, alltimeofftype=teachertimeofftype, reason=reason, firststatus = firststatus, secondstatus = secondstatus, user=user, stafftype=stafftype, pickvp=pickvp,duration=duration, period=period)
 			a_form.save()	
 
-			messages.success(request, f'Teacher timeoff applied')
-
+			period_list = "";
+			for stuff in period:
+				period_list+= stuff + ", ";
+			messages.success(request, f'Successfully Applied')
+			template = render_to_string('users/email_teachingstaffapply.html', {
+				'username':request.user.username,
+				'type':teachertimeofftype,
+				'startdate':startdate,
+				'enddate':enddate,
+				'period':period_list,
+				'reason':reason
+				})
 			send_mail(
-				'iLeave Confirmation' ,
-				'Thank you '+request.user.username+ '! You application for '+request.POST['teachertimeofftype']+' is under proccess!',
+				'Leave Application Confirmation' ,
+				template,
 				'test@gmail.com',
-				['request.user.email'],
+				[request.user.email],
 				)
 
 			return redirect('success')
@@ -272,17 +415,31 @@ def teacherapply(request):
 def supervisorapply(request, *args, **kwargs):
 	if request.user.is_supervisor:
 		userid = SupervisorDetail.objects.get(user = request.user)
+		firststatus = "Approved"
+		secondstatus = "Pending"
 	elif request.user.is_viceprincipal:
 		userid = VicePrincipalDetail.objects.get(user = request.user)
+		firststatus = "Approved"
+		secondstatus = "Approved"
+	elif request.user.is_teacher:
+		userid = TeachingStaffDetail.objects.get(user = request.user)
+		firststatus = "Pending"
+		secondstatus = "Pending"
+	elif request.user.is_nonteacher:
+		userid = NonTeachingStaffDetail.objects.get(user = request.user)
+		firststatus = "Pending"
+		secondstatus = "Pending"
+	else:
+		userid = SecretaryDetail.objects.get(user = request.user)
+		firststatus = "Pending"
+		secondstatus = "Pending"
+
 	if request.method == 'POST':
-		pickform = PickerForm(request.POST)
 		form = GroupApplyForm(request.POST)
-		userid = request.POST['pickuser']
-		user = User.objects.filter(id=userid)
-		# userid = list(User.objects.filter(username=request.POST['pickuser']).values('pickuser'))
-		if form.is_valid() and pickform.is_valid():		
+		
+		if form.is_valid():		
 			f = form.save(commit=False)
-			p = pickform.save(commit=False)
+
 			startdate = form.cleaned_data.get('startdate')
 			enddate = form.cleaned_data.get('enddate')
 			starttime = form.cleaned_data.get('starttime')
@@ -290,38 +447,180 @@ def supervisorapply(request, *args, **kwargs):
 			reason = form.cleaned_data.get('reason')
 			teachertimeofftype = form.cleaned_data.get('officialtype')
 			nonteachertimeofftype = form.cleaned_data.get('officialtype')
-			alluser = pickform.cleaned_data.get('pickuser')
+			if(teachertimeofftype == None):
+				alltimeofftype = nonteachertimeofftype;
+			else:
+				alltimeofftype = teachertimeofftype;
+			
+			alluser = form.cleaned_data.get('users')
 			appliedby = request.user
+			period = form.cleaned_data.get('period')
 
-			print(alluser)
+			def my_round(x):
+				return math.ceil(x*2)/2
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(startdate), date_format)
+			end_date = datetime.datetime.strptime(str(enddate), date_format)
+
+			if starttime == None and endtime == None:
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
+			elif starttime != None and endtime != None:
+				start_time = starttime.hour + starttime.minute/60
+				end_time = endtime.hour + endtime.minute/60
+				dur = (end_date - start_date).days + (end_time-start_time)/8
+				hr = (end_date - start_date).days*24 + end_time-start_time
+			duration = my_round(dur)
+			
+			f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, alltimeofftype=nonteachertimeofftype, reason=reason, firststatus = firststatus, secondstatus = secondstatus, user= request.user,appliedby=request.user, duration = duration ,groupapplystatus=True, period=period)
+			f.users.set(alluser)
+			f.save()			
+			
+			period_list = "";
+			for stuff in period:
+				period_list+= stuff + ", ";
+			my_list = "";
 			for stuff in alluser:
-				if stuff.is_nonteacher:
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, nonteachertimeofftype=nonteachertimeofftype, alltimeofftype=nonteachertimeofftype, reason=reason, user=stuff, stafftype = "Nonteacher", appliedby = appliedby, firststatus = "Approved")
-					f.save()			
-					messages.success(request, f'Timeoff applied')
-				elif stuff.is_viceprincipal or stuff.is_teacher or stuff.is_principal or stuff.is_supervisor:	
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, teachertimeofftype=teachertimeofftype, alltimeofftype=teachertimeofftype, reason=reason, user=stuff, stafftype = "Teacher", appliedby = appliedby, firststatus = "Approved")
-					f.save()			
-					messages.success(request, f'Timeoff applied')
+				my_list+=stuff.username + ", ";
+			template = render_to_string('users/email_groupapply.html', {
+				'username':my_list,
+				'type':alltimeofftype,
+				'startdate':startdate,
+				'enddate':enddate,
+				'period':period_list,
+				'reason':reason,
+				'applied_by':request.user.username
+				})
 
+			
+			for stuff in alluser:
 				send_mail(
-				'iLeave Confirmation' ,
-				'Hello '+stuff.username+ '! ' + request.user.username + ' has submitted a group application for Official leave on your behalf and is now under proccess!' ,
-				'test@gmail.com',
-				[stuff.email],
-				)
-			send_mail(
-					'iLeave Confirmation' ,
-					'Thank you '+request.user.username+ '! You application for group application for Official leave is under proccess!',
+					'Leave Application Confirmation' ,
+					template,
 					'test@gmail.com',
 					[stuff.email],
 					)
-			return redirect('success')
+			send_mail(
+				'iLeave Confirmation' ,
+				'Thank you '+request.user.username+ '! You applied '+alltimeofftype+' for '+my_list,
+				'test@gmail.com',
+				[request.user.email],
+				)
+			messages.success(request, f' {my_list} : Successfully Applied')
+			
+			return redirect('successgroupapply')
 	else:
 		form = GroupApplyForm()
-		pickform = PickerForm()
+		# pickform = PickerForm()
 
-	return render(request, "users/supervisorapply.html", {'form':form, 'pickform':pickform, 'userid':userid})
+	return render(request, "users/supervisorapply.html", {'form':form})
+@login_required
+def groupapplylistview(req):
+
+	queryset = LeaveApplication.objects.filter(appliedby = req.user) # list of objects
+	context = {
+		"objec_list" : queryset
+	}
+	return render(req, "users/groupapplylistview.html", context)
+
+@login_required
+def groupapplychangeview(request, myid):
+	obj = get_object_or_404(LeaveApplication, id =myid)
+	obj = LeaveApplication.objects.get(id=myid)
+	userid=obj.user
+	if obj.user.is_secretary:
+		applicant = SecretaryDetail.objects.get(user = userid)
+	elif obj.user.is_nonteacher:
+		applicant = NonTeachingStaffDetail.objects.get(user = userid)
+	elif obj.user.is_supervisor:
+		applicant = SupervisorDetail.objects.get(user = userid)
+	elif obj.user.is_viceprincipal:
+		applicant = VicePrincipalDetail.objects.get(user = userid)
+	else:
+		applicant = TeachingStaffDetail.objects.get(user = userid)
+	if request.method == 'POST':
+		# pickform = PickerForm(request.POST)
+		form = GroupApplyForm(request.POST, instance=obj)
+		# userid = request.POST['users']
+		# user_objects = User.objects.filter(id=userid)
+		# alluser = ""
+		if form.is_valid():		
+			form.save()
+			# p = pickform.save(commit=False)
+			obj.startdate = form.cleaned_data.get('startdate')
+			obj.enddate = form.cleaned_data.get('enddate')
+			obj.starttime = form.cleaned_data.get('starttime')
+			obj.endtime = form.cleaned_data.get('endtime')
+			obj.reason = form.cleaned_data.get('reason')
+			obj.teachertimeofftype = form.cleaned_data.get('officialtype')
+			obj.nonteachertimeofftype = form.cleaned_data.get('officialtype')
+			if(obj.teachertimeofftype == None):
+				obj.alltimeofftype = obj.nonteachertimeofftype;
+			else:
+				obj.alltimeofftype = obj.teachertimeofftype;
+			
+			obj.alluser = form.cleaned_data.get('users')
+			obj.appliedby = request.user
+			obj.period = form.cleaned_data.get('period')
+			
+			def my_round(x):
+				return math.ceil(x*2)/2
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(obj.startdate), date_format)
+			end_date = datetime.datetime.strptime(str(obj.enddate), date_format)
+
+			if obj.starttime == None and obj.endtime == None:
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
+			elif obj.starttime != None and obj.endtime != None:
+				start_time = obj.starttime.hour + obj.starttime.minute/60
+				end_time = obj.endtime.hour + obj.endtime.minute/60
+				dur = (end_date - start_date).days + (end_time-start_time)/8
+				hr = (end_date - start_date).days*24 + end_time-start_time
+			obj.duration = my_round(dur)
+			
+			# f = LeaveApplication.objects.update(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, alltimeofftype=nonteachertimeofftype, reason=reason, firststatus = firststatus, secondstatus = secondstatus, user= request.user,appliedby=request.user, duration = duration ,groupapplystatus=True, period=period)
+			# f.users.set(alluser)
+						
+			obj.save()
+
+			period_list = "";
+			for stuff in obj.period:
+				period_list+= stuff + ", ";
+			my_list = "";
+			for stuff in obj.alluser:
+				my_list+=stuff.username + ", ";
+			template = render_to_string('users/email_groupapply.html', {
+				'username':my_list,
+				'type':obj.alltimeofftype,
+				'startdate':obj.startdate,
+				'enddate':obj.enddate,
+				'period':obj.period_list,
+				'reason':obj.reason,
+				'applied_by':request.user.username
+				})
+
+			
+			for stuff in obj.alluser:
+				send_mail(
+					'Leave Application Confirmation' ,
+					template,
+					'test@gmail.com',
+					[stuff.email],
+					)
+			send_mail(
+				'iLeave Confirmation' ,
+				'Thank you '+request.user.username+ '! You applied '+obj.alltimeofftype+' for '+my_list,
+				'test@gmail.com',
+				[request.user.email],
+				)
+			messages.success(request, f' {my_list} : Successfully Modified')
+			
+			return redirect('successgroupapply')
+	else:
+		form = GroupApplyForm(instance= obj)
+
+	return render(request, "users/groupapplychangeview.html", {'form':form,'obj' : obj})
 
 @login_required
 def applyforapply(request, *args, **kwargs):
@@ -330,7 +629,7 @@ def applyforapply(request, *args, **kwargs):
 	elif request.user.is_viceprincipal:
 		userid = VicePrincipalDetail.objects.get(user = request.user)
 	elif request.user.is_secretary:
-		userid = NonTeachingStaffDetail.objects.get(user = request.user)
+		userid = SecretaryDetail.objects.get(user = request.user)
 	if request.method == 'POST':
 		pickform = PickerForm(request.POST)
 		form = ApplyForForm(request.POST)
@@ -352,51 +651,55 @@ def applyforapply(request, *args, **kwargs):
 			teachertimeofftype = emergencytype
 			nonteachertimeofftype = emergencytype
 			alluser = pickform.cleaned_data.get('pickuser')
-
+			appliedby = request.user
+			emergencystatus = True
 			def my_round(x):
 				return math.ceil(x*2)/2
-
-			start_date = startdate.day
-			end_date = enddate.day
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(startdate), date_format)
+			end_date = datetime.datetime.strptime(str(enddate), date_format)
+			# start_date = startdate.day
+			# end_date = enddate.day
 			
 
 			if starttime == None and endtime == None:
-				dur = end_date - start_date + 1
-				hr = (end_date - start_date + 1) * 24
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
 			elif starttime != None and endtime != None:
 				start_time = starttime.hour + starttime.minute/60
 				end_time = endtime.hour + endtime.minute/60
-				dur = end_date - start_date + (end_time-start_time)/8
-				hr = (end_date - start_date)*24 + end_time-start_time
+				dur = (end_date - start_date).days + (end_time-start_time)/8
+				hr = (end_date - start_date).days*24 + end_time-start_time
 			
 			if nonteachertimeofftype == 'Over Time':
-				duration = hr * userid.ratio
+				duration = decimal.Decimal(hr) * userid.ratio
 			else:
 				duration = my_round(dur)
 
-			print(alluser)
+			my_list = "";
 			for stuff in alluser:
 				if stuff.is_nonteacher:
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus,secretarystatus= secondstatus, finalstatus=finalstatus, nonteachertimeofftype=nonteachertimeofftype, alltimeofftype=nonteachertimeofftype,reason=reason, user=stuff, stafftype = "Nonteacher",duration=duration)
+					f = LeaveApplication.objects.create(emergencystatus=emergencystatus,startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus,secretarystatus= secondstatus, finalstatus=finalstatus, nonteachertimeofftype=nonteachertimeofftype, alltimeofftype=nonteachertimeofftype,appliedby = appliedby,reason=reason, user=stuff, stafftype = "Nonteacher",duration=duration)
 					f.save()			
-					messages.success(request, f'Timeoff applied')
+					messages.success(request, f'Successfully Applied')
 				elif stuff.is_viceprincipal or stuff.is_teacher or stuff.is_principal or stuff.is_supervisor:	
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus,secretarystatus= secondstatus, finalstatus=finalstatus, teachertimeofftype=teachertimeofftype, alltimeofftype=teachertimeofftype,reason=reason, user=stuff, stafftype = "Teacher",duration=duration)
+					f = LeaveApplication.objects.create(emergencystatus=emergencystatus,startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus,secretarystatus= secondstatus, finalstatus=finalstatus, teachertimeofftype=teachertimeofftype, alltimeofftype=teachertimeofftype,appliedby = appliedby,reason=reason, user=stuff, stafftype = "Teacher",duration=duration)
 					f.save()			
-					messages.success(request, f'Timeoff applied')
+					messages.success(request, f'Successfully Applied')
 
+				my_list+=stuff.username + ", ";
 				send_mail(
 				'iLeave Confirmation' ,
-				'Hello '+stuff.username+ '! ' + request.user.username + ' has submitted an application for Sick leave on your behalf!' ,
+				'Hello '+stuff.username+ '! ' + request.user.username + ' has submitted an application for '+emergencytype+' on your behalf!' ,
 				'test@gmail.com',
 				[stuff.email],
 				)
-				send_mail(
-					'iLeave Confirmation' ,
-					'Thank you '+request.user.username+ '! You application for group application for Sick leave on your behalf!',
-					'test@gmail.com',
-					[stuff.email],
-					)
+			send_mail(
+				'iLeave Confirmation' ,
+				'Thank you '+request.user.username+ '! You application '+emergencytype+' for '+my_list,
+				'test@gmail.com',
+				[request.user.email],
+				)
 			return redirect('success')
 	else:
 		form = ApplyForForm()
@@ -411,7 +714,7 @@ def applyforapply2(request, *args, **kwargs):
 	elif request.user.is_viceprincipal:
 		userid = VicePrincipalDetail.objects.get(user = request.user)
 	elif request.user.is_secretary:
-		userid = NonTeachingStaffDetail.objects.get(user = request.user)
+		userid = SecretaryDetail.objects.get(user = request.user)
 	if request.method == 'POST':
 		pickform = PickerForm(request.POST)
 		form = ApplyForForm2(request.POST)
@@ -434,50 +737,60 @@ def applyforapply2(request, *args, **kwargs):
 			nonteachertimeofftype = alltimeofftype
 			alluser = pickform.cleaned_data.get('pickuser')
 
+			pickmanager = form.cleaned_data.get('pickmanager') 
+
+			appliedby = request.user
 			def my_round(x):
 				return math.ceil(x*2)/2
-
-			start_date = startdate.day
-			end_date = enddate.day
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(startdate), date_format)
+			end_date = datetime.datetime.strptime(str(enddate), date_format)
+			# start_date = startdate.day
+			# end_date = enddate.day
 			
 
 			if starttime == None and endtime == None:
-				dur = end_date - start_date + 1
-				hr = (end_date - start_date + 1) * 24
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
 			elif starttime != None and endtime != None:
 				start_time = starttime.hour + starttime.minute/60
 				end_time = endtime.hour + endtime.minute/60
-				dur = end_date - start_date + (end_time-start_time)/8
-				hr = (end_date - start_date)*24 + end_time-start_time
+				dur = (end_date - start_date).days + (end_time-start_time)/8
+				hr = (end_date - start_date).days*24 + end_time-start_time
 			
 			if nonteachertimeofftype == 'Over Time':
 				duration = hr * userid.ratio
 			else:
 				duration = my_round(dur)
 
-			print(alluser)
+			my_list = "";
 			for stuff in alluser:
 				if stuff.is_nonteacher:
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus, finalstatus=finalstatus, nonteachertimeofftype=alltimeofftype, alltimeofftype=alltimeofftype,reason=reason, user=stuff, stafftype = "Nonteacher",duration=duration)
+					if pickmanager == None and not stuff.is_supervisor:
+						superv = SupervisorDetail.objects.get(user__username=stuff.NonTeachingStaffDetail.supervisor)
+						pickmanager = User.objects.get(username = superv.user)
+					else:
+						pickmanager = None
+					f = LeaveApplication.objects.create(pickmanager=pickmanager,startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus, finalstatus=finalstatus, nonteachertimeofftype=alltimeofftype, alltimeofftype=alltimeofftype,appliedby = appliedby,reason=reason, user=stuff, stafftype = "Nonteacher",duration=duration)
 					f.save()			
-					messages.success(request, f'Timeoff applied')
-				elif stuff.is_viceprincipal or stuff.is_teacher or stuff.is_principal or stuff.is_supervisor:	
-					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus, finalstatus=finalstatus, teachertimeofftype=alltimeofftype, alltimeofftype=alltimeofftype,reason=reason, user=stuff, stafftype = "Teacher",duration=duration)
+					messages.success(request, f'Successfully Applied')
+				elif stuff.is_viceprincipal or stuff.is_teacher or stuff.is_principal or stuff.is_supervisor and stuff.is_teacher:	
+					f = LeaveApplication.objects.create(startdate=startdate, enddate=enddate, starttime=starttime, endtime=endtime, firststatus=firststatus, secondstatus=secondstatus, finalstatus=finalstatus, teachertimeofftype=alltimeofftype, alltimeofftype=alltimeofftype,appliedby = appliedby,reason=reason, user=stuff, stafftype = "Teacher",duration=duration)
 					f.save()			
-					messages.success(request, f'Timeoff applied')
-
+					messages.success(request, f'Successfully Applied')
+				my_list+=stuff.username + ", ";
 				send_mail(
 				'iLeave Confirmation' ,
-				'Hello '+stuff.username+ '! ' + request.user.username + ' has submitted an application for Sick leave on your behalf!' ,
+				'Hello '+stuff.username+ '! ' + request.user.username + ' has submitted an application for '+alltimeofftype+' on your behalf!' ,
 				'test@gmail.com',
 				[stuff.email],
 				)
-				send_mail(
-					'iLeave Confirmation' ,
-					'Thank you '+request.user.username+ '! You application for group application for Sick leave on your behalf!',
-					'test@gmail.com',
-					[stuff.email],
-					)
+			send_mail(
+				'iLeave Confirmation' ,
+				'Thank you '+request.user.username+ '! You application '+alltimeofftype+' for '+my_list,
+				'test@gmail.com',
+				[request.user.email],
+				)
 			return redirect('success')
 	else:
 		form = ApplyForForm2()
@@ -525,7 +838,7 @@ def incrementallview(request, *args, **kwargs):
 					viceprincipaldetail.save()
 					f.save()			
 					messages.success(request, f'Timeoff added for all users')
-				elif stuff.is_nonteacher:
+				elif stuff.is_nonteacher and not stuff.is_secretary:
 					nonteacherdetail = NonTeachingStaffDetail.objects.get(user=stuff)
 					num = nonteacherdetail.sickleave + nonteacherdetail.increment
 					if (num > nonteacherdetail.maxsickleave):
@@ -570,21 +883,21 @@ def incrementlistview(req):
 	return render(req, "users/incrementlistview.html", context)
 
 
+
+
 @login_required
-def groupapplylistview(req):
-
-	queryset = LeaveApplication.objects.filter(appliedby = req.user) # list of objects
-	context = {
-		"objec_list" : queryset
-	}
-	return render(req, "users/groupapplylistview.html", context)
-
-
 def success(req):
 	obj = LeaveApplication.objects.all()
 	context = {"object" : obj
 	}
 	return render(req,"users/success.html",context)
+
+@login_required
+def successgroupapply(req):
+	obj = LeaveApplication.objects.all()
+	context = {"object" : obj
+	}
+	return render(req,"users/successgroupapply.html",context)
 
 @login_required
 def managerlistview(req):
@@ -604,19 +917,41 @@ def managerlistview(req):
 def managerapprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
+	userid=obj.user
+	if obj.user.is_secretary:
+		applicant = SecretaryDetail.objects.get(user = userid)
+	elif obj.user.is_nonteacher:
+		applicant = NonTeachingStaffDetail.objects.get(user = userid)
+	elif obj.user.is_supervisor:
+		applicant = SupervisorDetail.objects.get(user = userid)
+	elif obj.user.is_viceprincipal:
+		applicant = VicePrincipalDetail.objects.get(user = userid)
+	else:
+		applicant = TeachingStaffDetail.objects.get(user = userid)
 	if request.method == 'POST':	
 		u_form = FirstValidate(request.POST, instance=obj)
 		if u_form.is_valid():
 			u_form.save()
 			messages.success(request, f'DONE')
-			return redirect('success')
+
+
+			if (obj.pickmanager != None and u_form.cleaned_data.get('firststatus') == "Denied"):
+				send_mail(
+						'iLeave Confirmation' ,
+						'Hello '+obj.user.username+ '! You application for Official leave is denied by '+request.user.username+', please reach out!',
+						'test@gmail.com',
+						[obj.user.email],
+						)
+			return redirect('approve')
+
 	else:
 		u_form = FirstValidate(instance=obj)
 
 
 		context = {
 			'u_form':u_form,
-			'obj' : obj
+			'obj' : obj,
+			'applicant' : applicant
 		}
 	# context = {
 	# 	"objec" : obj
@@ -625,12 +960,12 @@ def managerapprove(request, myid):
 
 @login_required
 def vplistview(req):
-	users = VicePrincipalDetail.objects.get(user = req.user)
+	useri =  req.user
 	userid =  req.user.VicePrincipalDetail.allvp.all()
 	queryset = LeaveApplication.objects.exclude(user__id__in=userid.all()) # list of objects
 	context = {
 		"objec_list" : queryset,
-		"user" : users
+		"user" : useri
 	}
 	return render(req, "users/vplistview.html", context)
 
@@ -638,11 +973,32 @@ def vplistview(req):
 def vpapprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
-	if request.method == 'POST':	
+	userid=obj.user
+	if obj.user.is_secretary:
+		applicant = SecretaryDetail.objects.get(user = userid)
+	elif obj.user.is_nonteacher:
+		applicant = NonTeachingStaffDetail.objects.get(user = userid)
+	elif obj.user.is_supervisor:
+		applicant = SupervisorDetail.objects.get(user = userid)
+	elif obj.user.is_viceprincipal:
+		applicant = VicePrincipalDetail.objects.get(user = userid)
+	else:
+		applicant = TeachingStaffDetail.objects.get(user = userid)
+	
+
+	if request.method == 'POST':
 		u_form = SecondValidate(request.POST, instance=obj)
-		if u_form.is_valid():
-			u_form.save()
+		
+		if u_form.is_valid():		
+			f = u_form.save(commit=False)
+			obj.pickvp = u_form.cleaned_data.get('pickvp')
+			obj.secondstatus = u_form.cleaned_data.get('secondstatus')
+			obj.secondcomment = u_form.cleaned_data.get('secondcomment')
+			obj.secondapprovedby = request.user
+			obj.save()
+			
 			messages.success(request, f'Saved')
+
 			return redirect('vplistview')
 	else:
 		u_form = SecondValidate(instance=obj)
@@ -650,8 +1006,10 @@ def vpapprove(request, myid):
 
 		context = {
 			'u_form':u_form,
-			'obj' : obj
+			'obj' : obj,
+			'applicant' : applicant
 		}
+
 	return render(request, "users/vpapprove.html", context)
 
 @login_required
@@ -667,7 +1025,9 @@ def secretaryapprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
 	userid = obj.user
-	if obj.user.is_nonteacher:
+	if obj.user.is_secretary:
+		applicant = SecretaryDetail.objects.get(user = userid)
+	elif obj.user.is_nonteacher:
 		applicant = NonTeachingStaffDetail.objects.get(user = userid)
 	elif obj.user.is_supervisor:
 		applicant = SupervisorDetail.objects.get(user = userid)
@@ -682,31 +1042,20 @@ def secretaryapprove(request, myid):
 				modify = obj.duration
 				u_form.save()
 				obj.finalduration = modify
+				obj.updated_at = datetime.datetime.now()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Approved')
 
-				send_mail(
-				'iLeave Confirmation' ,
-				'Hello '+obj.user.username+ 'your leave application status has been updated! Please sign in to review.',
-				'test@gmail.com',
-				[obj.user.email],
-				)
+				
 
 				return redirect('secretarylistview')
 			else:
 				modify = obj.finalduration
 				u_form.save()
 				obj.finalduration = modify
+				obj.updated_at = datetime.datetime.now()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
-
-				send_mail(
-				'iLeave Confirmation' ,
-				'Hello '+obj.user.username+ 'your leave application status has been updated! Please sign in to review.',
-				'test@gmail.com',
-				[obj.user.email],
-				)
-
+				messages.success(request, f'Sucessfully Approved')
 				return redirect('secretarylistview')
 			
 	else:
@@ -737,7 +1086,9 @@ def papprove(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
 	userid = obj.user
-	if obj.user.is_nonteacher:
+	if obj.user.is_secretary:
+		applicant = SecretaryDetail.objects.get(user = userid)
+	elif obj.user.is_nonteacher and not obj.user.is_supervisor:
 		applicant = NonTeachingStaffDetail.objects.get(user = userid)
 	elif obj.user.is_supervisor:
 		applicant = SupervisorDetail.objects.get(user = userid)
@@ -760,34 +1111,24 @@ def papprove(request, myid):
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
+							messages.success(request, f'Sucessfully Approved')
 
-							send_mail(
-							'iLeave Confirmation' ,
-							'Hello '+obj.user.username+ 'your leave application status has been updated! Please sign in to review.',
-							'test@gmail.com',
-							[obj.user.email],
-							)
+							
 
-							return redirect('plistview')
 						else:
 							modify = obj.finalduration
 							applicant.annualleave = applicant.annualleave - abs(modify)
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
+							messages.success(request, f'Sucessfully Approved')
 
-							send_mail(
-							'iLeave Confirmation' ,
-							'Hello '+obj.user.username+ 'your leave application status has been updated! Please sign in to review.',
-							'test@gmail.com',
-							[obj.user.email],
-							)
+							
 
-							return redirect('plistview')
 
 					elif obj.nonteachertimeofftype == 'Sick Leave':
 						if obj.finalduration is None:
@@ -797,9 +1138,9 @@ def papprove(request, myid):
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 						else:
 							modify = obj.finalduration
 							applicant.sickleave = applicant.sickleave - abs(modify)
@@ -807,32 +1148,31 @@ def papprove(request, myid):
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 					elif obj.nonteachertimeofftype == 'Over Time':
 						if obj.finalduration is None:
 							modify = obj.duration
-							applicant.compensatedleave = applicant.compensatedleave + abs(modify)
+							applicant.compensatedleave = applicant.compensatedleave + modify
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 						else:
 							modify = obj.finalduration
-							applicant.compensatedleave = applicant.compensatedleave + abs(modify)
+							applicant.compensatedleave = applicant.compensatedleave + modify
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 					else:
 						u_form.save()
-						messages.success(request, f'non teacher DONE')
-						return redirect('plistview')
+						messages.success(request, f'Sucessfully Approved')
 				elif obj.nonteacherchangetimeofftype == 'Annual Leave':  #change leave type for non teacher
 
 					if obj.finalduration is None:
@@ -841,56 +1181,56 @@ def papprove(request, myid):
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 					else:
 						modify = obj.finalduration
 						applicant.annualleave = applicant.annualleave - abs(modify)
 						u_form.save()
 						applicant.save()
 						obj.finalduration = modify
+						obj.updated_at = datetime.datetime.now()
 						obj.save()
-						messages.success(request, f'non teacher DONE')
-						return redirect('plistview')
+						messages.success(request, f'Sucessfully Approved')
 				elif obj.nonteacherchangetimeofftype == 'Over Time':  #change leave type for non teacher
 				
 					if obj.finalduration is None:
 							modify = obj.duration
-							applicant.compensatedleave = applicant.compensatedleave - abs(modify)
+							applicant.compensatedleave = applicant.compensatedleave - modify
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 					else:
 						modify = obj.finalduration
-						applicant.compensatedleave = applicant.compensatedleave - abs(modify)
+						applicant.compensatedleave = applicant.compensatedleave - modify
 						u_form.save()
 						applicant.save()
 						obj.finalduration = modify
+						obj.updated_at = datetime.datetime.now()
 						obj.save()
-						messages.success(request, f'non teacher DONE')
-						return redirect('plistview')
-				elif obj.nonteacherchangetimeofftype == 'No Pay Leave':  #change leave type for non teacher
+						messages.success(request, f'Sucessfully Approved')
+				elif obj.nonteacherchangetimeofftype == 'No-Pay Leave':  #change leave type for non teacher
 				
 					if obj.finalduration is None:
 							modify = obj.duration
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 					else:
 						modify = obj.finalduration
 						u_form.save()
 						applicant.save()
 						obj.finalduration = modify
+						obj.updated_at = datetime.datetime.now()
 						obj.save()
-						messages.success(request, f'non teacher DONE')
-						return redirect('plistview')
+						messages.success(request, f'Sucessfully Approved')
 			elif u_form.is_valid() and obj.user.is_teacher:
 				if obj.teacherchangetimeofftype is None:	
 					if obj.teachertimeofftype == 'Casual Leave':
@@ -900,18 +1240,18 @@ def papprove(request, myid):
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 						else:
 							modify = obj.finalduration
 							applicant.casualleave = applicant.casualleave - abs(modify)
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 
 					elif obj.teachertimeofftype == 'Sick Leave':
 						if obj.finalduration is None:
@@ -921,50 +1261,75 @@ def papprove(request, myid):
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 						else:
 							modify = obj.finalduration
 							applicant.sickleave = applicant.sickleave - abs(modify)
 							u_form.save()
 							applicant.save()
 							obj.finalduration = modify
+							obj.updated_at = datetime.datetime.now()
 							obj.save()
-							messages.success(request, f'non teacher DONE')
-							return redirect('plistview')
+							messages.success(request, f'Sucessfully Approved')
 					else:
 						u_form.save()
-						messages.success(request, f'teacher DONE')
-						return redirect('plistview')
-				elif obj.teacherchangetimeofftype == 'No Pay Leave':  #change leave type for non teacher
+						messages.success(request, f'Sucessfully Approved')
+				elif obj.teacherchangetimeofftype == 'No-Pay Leave':  #change leave type for non teacher
 					if obj.finalduration is None:
-							modify = obj.duration
-							u_form.save()
-							applicant.save()
-							obj.finalduration = modify
-							obj.save()
-							messages.success(request, f'teacher DONE')
-							return redirect('plistview')
+						modify = obj.duration
+						u_form.save()
+						applicant.save()
+						obj.finalduration = modify
+						obj.updated_at = datetime.datetime.now()
+						obj.save()
+						messages.success(request, f'Sucessfully Approved')
 					else:
 						modify = obj.finalduration
 						u_form.save()
 						applicant.save()
 						obj.finalduration = modify
+						obj.updated_at = datetime.datetime.now()
 						obj.save()
-						messages.success(request, f'teacher DONE')
-						return redirect('plistview')
+						messages.success(request, f'Sucessfully Approved')
 		elif u_form.is_valid() and obj.finalstatus == 'Denied':	
 			if u_form.is_valid():
 				u_form.save()
 				messages.success(request, f'LeaveApplication Denied')
-				return redirect('plistview')
 		elif u_form.is_valid() and obj.finalstatus == 'Pending':	
 			if u_form.is_valid():
 				u_form.save()
 				messages.warning(request, f'Please select a Decision')
 				return redirect(request.get_full_path())
-		
+		elif u_form.is_valid() and obj.finalstatus == 'Canceled':	
+			if u_form.is_valid():
+				u_form.save()
+				messages.success(request, f'LeaveApplication Canceled')
+				return redirect(request.get_full_path())
+
+		period_list = "";
+		if obj.period is not None:
+			for stuff in obj.period:
+				period_list+= stuff + ", ";
+		messages.success(request, f'Successfully Applied')
+		template = render_to_string('users/email_principalapprove.html', {
+			'username':obj.user.username,
+			'type':obj.teachertimeofftype,
+			'startdate':obj.startdate,
+			'enddate':obj.enddate,
+			'period':period_list,
+			'finalduration':obj.finalduration,
+			'finalstatus':obj.finalstatus,
+			'reason':obj.reason
+			})
+		send_mail(
+			'Result of Leave Application',
+			template,
+			'test@gmail.com',
+			[obj.user.email],
+			)
+		return redirect('plistview') 
 	else:
 		u_form = FinalValidate(instance=obj)
 
@@ -981,9 +1346,13 @@ def papprove(request, myid):
 
 @login_required
 def plistviewdecided(req):
+	if req.user.is_principal or req.user.is_secretary:	
+		userid = req.user
+	
 	queryset = LeaveApplication.objects.all() # list of objects
 	context = {
-		"objec_list" : queryset
+		"objec_list" : queryset,
+		"userid":userid
 	}
 	return render(req, "users/plistviewdecided.html", context)
 
@@ -991,11 +1360,16 @@ def plistviewdecided(req):
 def papprovedecided(request, myid):
 	obj = get_object_or_404(LeaveApplication, id =myid)
 	obj = LeaveApplication.objects.get(id=myid)
+	if request.user.is_principal or request.user.is_secretary:	
+		myuserid = request.user
 	userid = obj.user
-	if obj.user.is_nonteacher:
-		applicant = NonTeachingStaffDetail.objects.get(user = userid)
+	if obj.user.is_secretary:
+		applicant = SecretaryDetail.objects.get(user = userid)
+	
 	elif obj.user.is_supervisor:
 		applicant = SupervisorDetail.objects.get(user = userid)
+	elif obj.user.is_nonteacher:
+		applicant = NonTeachingStaffDetail.objects.get(user = userid)
 	elif obj.user.is_viceprincipal:
 		applicant = VicePrincipalDetail.objects.get(user = userid)
 	else:
@@ -1009,7 +1383,7 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistviewdecided')
 
 			elif obj.nonteachertimeofftype == 'Sick Leave':
@@ -1019,7 +1393,7 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistviewdecided')
 			elif obj.nonteachertimeofftype == 'Over Time':
 				applicant.compensatedleave = applicant.compensatedleave - abs(obj.finalduration)
@@ -1027,11 +1401,11 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistviewdecided')
 			else:
 				u_form.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistviewdecided')
 		elif u_form.is_valid() and obj.user.is_supervisor:
 			if obj.teachertimeofftype == 'Casual Leave':
@@ -1040,7 +1414,7 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistview')
 			elif obj.teachertimeofftype == 'Sick Leave':
 				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
@@ -1049,7 +1423,7 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistview')
 			else:
 				u_form.save()
@@ -1063,7 +1437,7 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistview')
 			elif obj.teachertimeofftype == 'Sick Leave':
 				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
@@ -1072,7 +1446,7 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistview')
 			else:
 				u_form.save()
@@ -1086,7 +1460,7 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistview')
 			elif obj.teachertimeofftype == 'Sick Leave':
 				applicant.sickleave = applicant.sickleave + abs(obj.finalduration)
@@ -1095,7 +1469,7 @@ def papprovedecided(request, myid):
 				u_form.save()
 				applicant.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Canceled')
 				return redirect('plistview')
 			else:
 				u_form.save()
@@ -1106,7 +1480,8 @@ def papprovedecided(request, myid):
 	return render(request, "users/papprovedecided.html", {
 			'obj' : obj, 
 			'applicant' : applicant,
-			'u_form' : u_form
+			'u_form' : u_form,
+			'myuserid':myuserid
 			})
 
 @login_required
@@ -1156,13 +1531,13 @@ def alllistview(req):
 		response = HttpResponse(content_type='text/csv') 
 		response['Content-Disposition'] = 'attachment; filename="LeaveExport.csv"' 
 		writer = csv.writer(response) 
-		writer.writerow(['Apply Date/Time', 'Name', 'Leave Type', 'From Date', 'From Time', 'To Date', 'To Time', 'Supervisor Decision', 'Vice Principal Decision', 'Principal Decision', 'Remark']) 
+		writer.writerow(['Apply Date/Time', 'Name', 'Leave Type', 'From Date', 'From Time', 'To Date', 'To Time','Duration' ,'Supervisor Decision', 'Vice Principal Decision', 'Principal Decision','Date Approved', 'Remark', 'Reason']) 
 		instance = queryset 
 		for row in instance:
 			if row.user.is_nonteacher:
-				writer.writerow([row.created_at_date, row.user.username, row.nonteachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.firststatus, row.secondstatus, row.finalstatus, row.finalcomment]) 
+				writer.writerow([row.created_at_date, row.user.username, row.nonteachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.finalduration, row.firststatus, row.secondstatus, row.finalstatus, row.updated_at, row.finalcomment, row.reason]) 
 			else:
-				writer.writerow([row.created_at_date, row.user.username, row.teachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.firststatus, row.secondstatus, row.finalstatus, row.finalcomment]) 
+				writer.writerow([row.created_at_date, row.user.username, row.teachertimeofftype, row.startdate, row.starttime, row.enddate, row.endtime, row.finalduration, row.firststatus, row.secondstatus, row.finalstatus, row.updated_at,row.finalcomment, row.reason]) 
 		return response 
 	context = {
 		"myFilter" : myFilter,
@@ -1177,8 +1552,13 @@ def alldetailview(request, myid):
 	obj = LeaveApplication.objects.get(id=myid)
 
 	if request.method == 'POST':
+		if request.user.is_nonteacher:
+			form = NonTeacherApplyForm(request.POST, instance=obj)
+		else:
+			form = TeacherApplyForm(request.POST, instance=obj)	
+		g_form = GroupApplyForm(request.POST, instance=obj)
 		u_form = UserCancelForm(request.POST, instance=obj)
-		if u_form.is_valid(): 
+		if u_form.is_valid() and 'cancel' in request.POST: 
 			if obj.finalstatus == "Pending" and obj.secondstatus == "Pending" and obj.firststatus == "Pending":
 
 				obj.firststatus = "Canceled"
@@ -1186,14 +1566,91 @@ def alldetailview(request, myid):
 				obj.finalstatus = "Canceled"
 				u_form.save()
 				obj.save()
-				messages.success(request, f'non teacher DONE')
+				messages.success(request, f'Sucessfully Approved')
 				return redirect('alllistview')
-	
+		if form.is_valid() and 'modify' in request.POST:
+			form.save()
+			# p = pickform.save(commit=False)
+			obj.startdate = form.cleaned_data.get('startdate')
+			obj.enddate = form.cleaned_data.get('enddate')
+			obj.starttime = form.cleaned_data.get('starttime')
+			obj.endtime = form.cleaned_data.get('endtime')
+			obj.reason = form.cleaned_data.get('reason')
+			obj.pickvp = form.cleaned_data.get('pickvp')
+
+			if request.user.is_nonteacher:
+				obj.nonteachertimeofftype = form.cleaned_data.get('nonteachertimeofftype')
+				obj.pickmanager = form.cleaned_data.get('pickmanager')
+			else:
+				obj.teachertimeofftype = form.cleaned_data.get('teachertimeofftype')
+			
+			obj.period = form.cleaned_data.get('period')
+			
+			def my_round(x):
+				return math.ceil(x*2)/2
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(obj.startdate), date_format)
+			end_date = datetime.datetime.strptime(str(obj.enddate), date_format)
+
+			if obj.starttime == None and obj.endtime == None:
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
+			elif starttime != None and endtime != None:
+				start_time = starttime.hour + starttime.minute/60
+				end_time = endtime.hour + endtime.minute/60
+				dur = (end_date - start_date).days + (end_time-start_time)/8
+				hr = (end_date - start_date).days*24 + end_time-start_time
+			obj.duration = my_round(dur)	
+			obj.save()
+			messages.success(request, f'Sucessfully Approved')
+			return redirect('alllistview')
+		if g_form.is_valid() and 'modifygroup' in request.POST:	
+			g_form.save()
+			# p = pickform.save(commit=False)
+			obj.startdate = form.cleaned_data.get('startdate')
+			obj.enddate = form.cleaned_data.get('enddate')
+			obj.starttime = form.cleaned_data.get('starttime')
+			obj.endtime = form.cleaned_data.get('endtime')
+			obj.reason = form.cleaned_data.get('reason')
+			obj.teachertimeofftype = form.cleaned_data.get('officialtype')
+			obj.nonteachertimeofftype = form.cleaned_data.get('officialtype')
+			if(obj.teachertimeofftype == None):
+				obj.alltimeofftype = obj.nonteachertimeofftype;
+			else:
+				obj.alltimeofftype = obj.teachertimeofftype;
+			
+			obj.alluser = form.cleaned_data.get('users')
+			obj.appliedby = request.user
+			obj.period = form.cleaned_data.get('period')
+			
+			def my_round(x):
+				return math.ceil(x*2)/2
+			date_format = "%Y-%m-%d"
+			start_date = datetime.datetime.strptime(str(obj.startdate), date_format)
+			end_date = datetime.datetime.strptime(str(obj.enddate), date_format)
+
+			if obj.starttime == None and obj.endtime == None:
+				dur = (end_date - start_date).days + 1
+				hr = ((end_date - start_date).days+ 1) * 24
+			elif starttime != None and endtime != None:
+				start_time = starttime.hour + starttime.minute/60
+				end_time = endtime.hour + endtime.minute/60
+				dur = (end_date - start_date).days + (end_time-start_time)/8
+				hr = (end_date - start_date).days*24 + end_time-start_time
+			obj.duration = my_round(dur)
+			obj.save()
 	else:
+		g_form = GroupApplyForm(instance=obj)
 		u_form = UserCancelForm(instance=obj)
+		if request.user.is_nonteacher:
+			form = NonTeacherApplyForm( instance=obj)
+		else:
+			form = TeacherApplyForm( instance=obj)
 	context = {
 		'obj' : obj,
-		'u_form' : u_form
+		'u_form' : u_form,
+		'form' : form,
+		'g_form': g_form
 	}
 	return render(request, 'users/alldetailview.html', context)
 
@@ -1226,7 +1683,7 @@ def documentdetailview(request, myid):
 		u_form = DocumentForm(request.POST, instance=obj)
 		if u_form.is_valid(): 	
 			u_form.save()
-			messages.success(request, f'non teacher DONE')
+			messages.success(request, f'Sucessfully Saved')
 			return redirect('documentlistview')
 	
 	else:
@@ -1259,7 +1716,7 @@ def calendardetailview(request, myid):
 		u_form = CalendarForm(request.POST, instance=obj)
 		if u_form.is_valid(): 	
 			u_form.save()
-			messages.success(request, f'non teacher DONE')
+			messages.success(request, f'Sucessfully Saved')
 			return redirect('calendarlistview')
 	
 	else:
@@ -1289,6 +1746,7 @@ def prependingdetailview(request, myid):
 		if u_form.is_valid():
 			obj.firststatus = 'Pending'
 			obj.secondstatus = 'Pending'
+			obj.secretarystatus = 'Pending'
 			obj.finalstatus = 'Pending'
 			# u_form.save()
 			obj.save()

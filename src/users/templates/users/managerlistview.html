@@ -31,18 +31,18 @@
     <th>Leave Type</th>
     <th>From</th>
     <th>To</th>
-    <th>Vice Principal Decision</th>
-    <th>Direct Supervisor</th>
+
+
   </tr>
 {% for stuff in objec_list %}
-	{{stuff.pickmanager}}
-	{% if stuff.pickmanager == None %}
-		{% if stuff.finalstatus == "Pending" and stuff.firststatus == "Pending"%}
+	
+	{% if stuff.pickmanager == user_manager   %}
+		{% if stuff.finalstatus == "Pending" and stuff.firststatus == "Pending" and stuff.secondstatus == "Pending" %}
 			<tr class = 'table'>
-				<td><a href = '{{ stuff.get_absolute_url }}'> Check detail </a></td>
+				<td><a href = '{{ stuff.get_absolute_url }}'> {{ stuff.firststatus }} </a></td>
 				<td> {{ stuff.created_at }}</td>
 				<td> {{ stuff.user.username }} </td>
-				<td> {{ stuff.nonteachertimeofftype }}</td>
+				<td> {{ stuff.alltimeofftype }}</td>
 				{% if stuff.starttime == None and stuff.endtime == None %}
 					<td> {{ stuff.startdate}}</td>
 					<td> {{ stuff.enddate}}</td>
@@ -50,26 +50,7 @@
 					<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
 					<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
 				{% endif %}	
-				<td> {{ stuff.secondstatus }}</td>
-				<td> {{ stuff.firststatus }}</td>
-			</tr>
-		{% endif %}	
-	{% elif stuff.pickmanager == user_manager %}
-		{% if stuff.finalstatus == "Pending" and stuff.firststatus == "Pending"%}
-			<tr class = 'table'>
-				<td><a href = '{{ stuff.get_absolute_url }}'> Check detail </a></td>
-				<td> {{ stuff.created_at }}</td>
-				<td> {{ stuff.user.username }} </td>
-				<td> {{ stuff.nonteachertimeofftype }}</td>
-				{% if stuff.starttime == None and stuff.endtime == None %}
-					<td> {{ stuff.startdate}}</td>
-					<td> {{ stuff.enddate}}</td>
-				{% else %}
-					<td> {{ stuff.startdate}} ({{ stuff.starttime }})</td>
-					<td> {{ stuff.enddate}} ({{ stuff.endtime }})</td>
-				{% endif %}	
-				<td> {{ stuff.secondstatus }}</td>
-				<td> {{ stuff.firststatus }}</td>
+			
 			</tr>
 		{% endif %}	
 	{% endif %}	

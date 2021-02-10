@@ -18,13 +18,13 @@
 
   </tr>
 {% for stuff in objec_list %}
-	{% if stuff.finalstatus == "Pending" %}
+	{% if stuff.finalstatus == "Pending" and stuff.firststatus != "Denied" and stuff.secondstatus != "Denied" and stuff.firststatus != "Canceled" and stuff.secondstatus != "Canceled"%}
 		{% if stuff.user.is_nonteacher %}
 		<tr class = 'table'>
 			<td><a href = "{% url 'papprove' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
 			<td> {{ stuff.created_at }}</td>
-			<td> {{ stuff.user.username }} </td>
-			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {% for each in stuff.users.all %}{{ each }}<br/>{% empty %}{{ stuff.user.username }} {% endfor %} </td>
+			<td> {{ stuff.alltimeofftype }}</td>
 			{% if stuff.starttime == None and stuff.endtime == None %}
 				<td> {{ stuff.startdate}}</td>
 				<td> {{ stuff.enddate}}</td>
@@ -40,8 +40,8 @@
 		<tr class = 'table'>
 			<td><a href = "{% url 'papprove' myid=stuff.id %}"> {{ stuff.finalstatus }}</td></a>
 			<td> {{ stuff.created_at }}</td>
-			<td> {{ stuff.user.username }} </td>
-			<td> {{ stuff.teachertimeofftype }}</td>
+			<td> {% for each in stuff.users.all %}{{ each }}<br/>{% empty %}{{ stuff.user.username }} {% endfor %} </td>
+			<td> {{ stuff.alltimeofftype }}</td>
 			{% if stuff.starttime == None and stuff.endtime == None %}
 				<td> {{ stuff.startdate}}</td>
 				<td> {{ stuff.enddate}}</td>

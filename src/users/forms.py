@@ -1,12 +1,14 @@
 from django import forms
+from django.db.models import Q
 from django.forms import ModelForm, Textarea, Select
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile
 from customstaff.models import *
 from bootstrap_datepicker_plus import DatePickerInput, TimePickerInput, DateTimePickerInput, MonthPickerInput, YearPickerInput
 from django.core.exceptions import ValidationError
+from bootstrap_daterangepicker import widgets, fields
 from django.contrib import messages
-
+from datetime import *
 # class UserRegisterForm(UserCreationForm):
 # 	email = forms.EmailField()
 
@@ -19,7 +21,15 @@ from django.contrib import messages
 # 			'password2',
 # 		]
 TIME_FORMAT = '%I:%M %p'
-
+first = '1st'
+second = '2nd'
+third = '3rd'
+forth = '4th'
+fifth = '5th'
+sixth = '6th'
+seventh = '7th'
+eighth = '8th'
+ninth = '9th'
 class UserUpdateForm(forms.ModelForm):
 	email = forms.EmailField()
 
@@ -66,7 +76,8 @@ class NonTeachingStaffUpdateForm(forms.ModelForm):
 
 class TeacherApplyForm(forms.ModelForm):
 	
-	startdate = forms.DateField(label= 'From Date',widget=DatePickerInput(
+	startdate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'From Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -86,7 +97,8 @@ class TeacherApplyForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
+	enddate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'To Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -107,13 +119,36 @@ class TeacherApplyForm(forms.ModelForm):
 			)
 	# teachertimeofftype = forms.ChoiceField(required=False, choices = TEACHER_TIMEOFF_CHOICES)
 
-	reason	= forms.CharField(required=False,
+	reason	= forms.CharField(required=True,
 		widget=forms.Textarea(
 			attrs={
 				"cols" : 50,
 				"rows" : 3
 		}))	
+	PERIOD_CHOICES = [
+		# ("first" ,'1st'),
+		# ("second", '2nd'),
+		# ("third" ,'3rd'),
+		# ("forth" ,'4th'),
+		# ("fifth" ,'5th'),
+		# ("sixth" ,'6th'),
+		# ("seventh", '7th'),
+		# ("eighth", '8th'),
+		# ("ninth" ,'9th'),
+		# ("allday", 'allday')
 
+		(first ,'1st'),
+		(second, '2nd'),
+		(third ,'3rd'),
+		(forth ,'4th'),
+		(fifth ,'5th'),
+		(sixth ,'6th'),
+		(seventh, '7th'),
+		(eighth, '8th'),
+		(ninth ,'9th')
+	]
+
+	period = forms.MultipleChoiceField(required=False,choices = PERIOD_CHOICES)
 	pickvp = forms.ModelChoiceField(required=False,label ="Choose VP",queryset = User.objects.filter(is_viceprincipal = True))
 
 	class Meta:
@@ -121,13 +156,13 @@ class TeacherApplyForm(forms.ModelForm):
 		fields = [
 			'teachertimeofftype',
 			'pickvp',
+			'period',
 			'startdate',
 			'starttime',
 			'enddate',
 			'endtime',
-			'reason',
-			'file'
-		]
+			'reason'
+			]
 		widgets={
 			'teachertimeofftype': Select(attrs={"onChange":"showDiv('hidden_div', this)"}),
 		}
@@ -149,14 +184,16 @@ class TeacherApplyForm(forms.ModelForm):
 			elif startdate.month < enddate.month:
 				print('22222222')
 				return endtime
+			elif startdate.year < enddate.year:
+					return endtime
 			elif startdate.month == enddate.month and startdate.day == enddate.day:
 				if starttime.minute  >=  endtime.minute and starttime.hour  >=  endtime.hour:
-					raise ValidationError("End date must be later than start date")
+					raise forms.ValidationError(("End date must be later than start date"))
 				elif starttime.hour  >  endtime.hour:
-					raise ValidationError("End date must be later than start date")
+					raise forms.ValidationError(("End date must be later than start date"))
 			else:
 				print('4444444444')
-				raise ValidationError("End date must be later than start date")
+				raise forms.ValidationError(("End date must be later than start date"))
 	
 		elif starttime == None and endtime == None:
 			if startdate.day <= enddate.day and startdate.month == enddate.month:
@@ -165,13 +202,24 @@ class TeacherApplyForm(forms.ModelForm):
 			elif startdate.month < enddate.month:
 				print('666666666')
 				return endtime
+			elif startdate.year < enddate.year:
+					return endtime
 			else:
 				print('7777777')
-				raise ValidationError("End date must be later than start date")
+				raise forms.ValidationError(("End date must be later than start date"))
 		else:
-			raise ValidationError("End date must be later than start date")
+			raise forms.ValidationError(("End date must be later than start date"))
 class NonTeacherApplyForm(forms.ModelForm):
-	startdate = forms.DateField(label= 'From Date',widget=DatePickerInput(
+	
+	# date_range_picker = fields.DateRangeField(
+	# 	input_formats=['%d/%m/%Y'],
+	# 	widget=widgets.DateRangeWidget(
+	# 		format='%d/%m/%Y'
+	# 		)
+	# )
+
+	startdate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'From Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -191,7 +239,8 @@ class NonTeacherApplyForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
+	enddate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'To Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -213,7 +262,7 @@ class NonTeacherApplyForm(forms.ModelForm):
 	# nonteachertimeofftype = forms.CharField(required=False)
 
 	
-	reason	= forms.CharField(required=False,
+	reason	= forms.CharField(required=True,
 		widget=forms.Textarea(
 			attrs={
 				"cols" : 50,
@@ -221,7 +270,22 @@ class NonTeacherApplyForm(forms.ModelForm):
 		}))
 
 	pickvp = forms.ModelChoiceField(required=False,label ="Please Select Vice-Principal",queryset = User.objects.filter(is_viceprincipal = True))
-	pickmanager = forms.ModelChoiceField(required=False, label ="Please Select Supervisor(s)",queryset = User.objects.filter(is_supervisor = True))
+	pickmanager = forms.ModelChoiceField(required=False, label ="Please Select Supervisor(s)",queryset = User.objects.filter(Q(is_supervisor = True) | Q(is_viceprincipal = True)))
+	
+	PERIOD_CHOICES = [
+
+		(first ,'1st'),
+		(second, '2nd'),
+		(third ,'3rd'),
+		(forth ,'4th'),
+		(fifth ,'5th'),
+		(sixth ,'6th'),
+		(seventh, '7th'),
+		(eighth, '8th'),
+		(ninth ,'9th')
+	]
+
+	period = forms.MultipleChoiceField(required=False,choices = PERIOD_CHOICES) 
 	class Meta:
 		model = LeaveApplication
 		fields = [
@@ -232,6 +296,7 @@ class NonTeacherApplyForm(forms.ModelForm):
 			'starttime',
 			'enddate',
 			'endtime',
+			'period',
 			'reason',
 			'file'
 		]
@@ -240,9 +305,51 @@ class NonTeacherApplyForm(forms.ModelForm):
 					"onChange":"showDiv('hidden_div', this)"
 					}),
 			}
+
+		
+	def clean(self):
+		startdate = self.cleaned_data.get('startdate')
+		enddate = self.cleaned_data.get('enddate')
+		starttime = self.cleaned_data.get('starttime')
+		endtime = self.cleaned_data.get('endtime')
+		if starttime != None and endtime != None:
+			if startdate.day < enddate.day and startdate.month == enddate.month:
+				print('111111111')
+				# return endtime
+			elif startdate.month < enddate.month:
+				print('22222222')
+				return endtime
+			elif startdate.year < enddate.year:
+				return endtime
+			elif startdate.month == enddate.month and startdate.day == enddate.day:
+				if starttime.minute  >=  endtime.minute and starttime.hour  >=  endtime.hour:
+					raise forms.ValidationError(("End Time must be later than start Time"))
+				elif starttime.hour  >  endtime.hour:
+					raise forms.ValidationError(("End Time must be later than start Time"))
+			else:
+				print('4444444444')
+				raise forms.ValidationError(("End date must be later than start date"))
+			
+		elif starttime == None and endtime == None:
+			if startdate.day <= enddate.day and startdate.month == enddate.month:
+				print('5555555')
+				# return endtime
+			elif startdate.month < enddate.month:
+				print('666666666')
+				# return endtime
+			elif startdate.year < enddate.year :
+				# return endtime
+				print('666666666')
+			else:
+				print('7777777')
+				raise forms.ValidationError(("End date must be later than start date"))
+			
+		else:
+			raise forms.ValidationError(("End date must be later than start date"))
 class GroupApplyForm(forms.ModelForm):
 	
-	startdate = forms.DateField(label= 'From Date',widget=DatePickerInput(
+	startdate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'From Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -262,7 +369,8 @@ class GroupApplyForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
+	enddate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'To Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -284,48 +392,70 @@ class GroupApplyForm(forms.ModelForm):
 	teachertimeofftype = forms.CharField(required=False)
 	nonteachertimeofftype = forms.CharField(required=False)
 
-	reason	= forms.CharField(required=False,
+	reason	= forms.CharField(required=True,
 		widget=forms.Textarea(
 			attrs={
 				"cols" : 50,
 				"rows" : 3
-		}))		 
+		}))
+	PERIOD_CHOICES = [
+		(first ,'1st'),
+		(second, '2nd'),
+		(third ,'3rd'),
+		(forth ,'4th'),
+		(fifth ,'5th'),
+		(sixth ,'6th'),
+		(seventh, '7th'),
+		(eighth, '8th'),
+		(ninth ,'9th'),
+		# (allday, 'Whole Day')
+	]
+
+	period = forms.MultipleChoiceField(required=False,choices = PERIOD_CHOICES) 
+	users = forms.ModelMultipleChoiceField(label ="Applying for",queryset = User.objects.exclude(Q(is_principal = True ) | Q(is_secretary = True)),widget=forms.SelectMultiple(attrs={
+						"onChange":"showSelectedValues(this)"
+						})
+					)	 
 	class Meta:
 		model = LeaveApplication
 		fields = [
 			'teachertimeofftype',
 			"nonteachertimeofftype",
+			"users",
 			"officialtype",
 			'startdate',
 			'starttime',
 			'enddate',
 			'endtime',
+			'period',
 			'reason',
-			'file'
 		]
 
 	def clean(self):
-		startdate = self.cleaned_data.get('startdate')
-		enddate = self.cleaned_data.get('enddate')
-		starttime = self.cleaned_data.get('starttime')
-		endtime = self.cleaned_data.get('endtime')
+		cleaned_data = super().clean()
+		startdate = cleaned_data.get('startdate')
+		enddate = cleaned_data.get('enddate')
+		starttime = cleaned_data.get('starttime')
+		endtime = cleaned_data.get('endtime')
 		if starttime != None and endtime != None:
-			
 			if startdate.day < enddate.day and startdate.month == enddate.month:
 				print('111111111')
-				
+				# return endtime
 			elif startdate.month < enddate.month:
 				print('22222222')
-				return endtime
+				# return endtime
+			elif startdate.year < enddate.year:
+				# return endtime
+				print('22222222')
 			elif startdate.month == enddate.month and startdate.day == enddate.day:
 				if starttime.minute  >=  endtime.minute and starttime.hour  >=  endtime.hour:
-					raise ValidationError("End date must be later than start date")
+					raise forms.ValidationError(("End Time must be later than start Time"))
 				elif starttime.hour  >  endtime.hour:
-					raise ValidationError("End date must be later than start date")
+					raise forms.ValidationError(("End Time must be later than start Time"))
 			else:
 				print('4444444444')
-				raise ValidationError("End date must be later than start date")
-	
+				raise forms.ValidationError(("End date must be later than start date"))
+			
 		elif starttime == None and endtime == None:
 			if startdate.day <= enddate.day and startdate.month == enddate.month:
 				print('5555555')
@@ -333,15 +463,19 @@ class GroupApplyForm(forms.ModelForm):
 			elif startdate.month < enddate.month:
 				print('666666666')
 				return endtime
+			elif startdate.year < enddate.year :
+				return endtime
 			else:
 				print('7777777')
-				raise ValidationError("End date must be later than start date")
+				raise forms.ValidationError(("End date must be later than start date"))
+			
 		else:
-			raise ValidationError("End date must be later than start date")
+			raise forms.ValidationError(("End date must be later than start date"))
 
 class ApplyForForm(forms.ModelForm):
 	
-	startdate = forms.DateField(label= 'From Date',widget=DatePickerInput(
+	startdate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'From Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -361,7 +495,8 @@ class ApplyForForm(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
+	enddate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'To Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -386,12 +521,26 @@ class ApplyForForm(forms.ModelForm):
 	secondstatus = forms.CharField(required=False)
 	finalstatus = forms.CharField(required=False)
 
-	reason	= forms.CharField(required=False,
+	reason	= forms.CharField(required=True,
 		widget=forms.Textarea(
 			attrs={
 				"cols" : 50,
 				"rows" : 3
-		}))		 
+		}))
+	PERIOD_CHOICES = [
+		(first ,'1st'),
+		(second, '2nd'),
+		(third ,'3rd'),
+		(forth ,'4th'),
+		(fifth ,'5th'),
+		(sixth ,'6th'),
+		(seventh, '7th'),
+		(eighth, '8th'),
+		(ninth ,'9th'),
+		# (allday, 'Whole Day')
+	]
+
+	period = forms.MultipleChoiceField(required=False,choices = PERIOD_CHOICES)		 
 	class Meta:
 		model = LeaveApplication
 		fields = [
@@ -405,6 +554,7 @@ class ApplyForForm(forms.ModelForm):
 			'starttime',
 			'enddate',
 			'endtime',
+			'period',
 			'reason',
 			'file'
 		]
@@ -424,12 +574,14 @@ class ApplyForForm(forms.ModelForm):
 				return endtime
 			elif startdate.month == enddate.month and startdate.day == enddate.day:
 				if starttime.minute  >=  endtime.minute and starttime.hour  >=  endtime.hour:
-					raise ValidationError("End date must be later than start date")
+					raise forms.ValidationError(("End Time must be later than start Time"))
 				elif starttime.hour  >  endtime.hour:
-					raise ValidationError("End date must be later than start date")
+					raise forms.ValidationError(("End Time must be later than start Time"))
+			elif startdate.year < enddate.year:
+					return endtime
 			else:
 				print('4444444444')
-				raise ValidationError("End date must be later than start date")
+				raise forms.ValidationError(("End date must be later than start date"))
 	
 		elif starttime == None and endtime == None:
 			if startdate.day <= enddate.day and startdate.month == enddate.month:
@@ -438,15 +590,18 @@ class ApplyForForm(forms.ModelForm):
 			elif startdate.month < enddate.month:
 				print('666666666')
 				return endtime
+			elif startdate.year < enddate.year:
+					return endtime
 			else:
 				print('7777777')
-				raise ValidationError("End date must be later than start date")
+				raise forms.ValidationError(("End date must be later than start date"))
 		else:
-			raise ValidationError("End date must be later than start date")
+			raise forms.ValidationError(("End date must be later than start date"))
 
 class ApplyForForm2(forms.ModelForm):
 	
-	startdate = forms.DateField(label= 'From Date',widget=DatePickerInput(
+	startdate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'From Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -466,7 +621,8 @@ class ApplyForForm2(forms.ModelForm):
 			 })
 			)
 
-	enddate = forms.DateField(label= 'To Date',widget=DatePickerInput(
+	enddate = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'To Date',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -491,12 +647,26 @@ class ApplyForForm2(forms.ModelForm):
 	secondstatus = forms.CharField(required=False)
 	finalstatus = forms.CharField(required=False)
 
-	reason	= forms.CharField(required=False,
+	reason	= forms.CharField(required=True,
 		widget=forms.Textarea(
 			attrs={
 				"cols" : 50,
 				"rows" : 3
-		}))		 
+		}))
+	PERIOD_CHOICES = [
+		(first ,'1st'),
+		(second, '2nd'),
+		(third ,'3rd'),
+		(forth ,'4th'),
+		(fifth ,'5th'),
+		(sixth ,'6th'),
+		(seventh, '7th'),
+		(eighth, '8th'),
+		(ninth ,'9th'),
+		# (allday, 'Whole Day')
+	]
+
+	period = forms.MultipleChoiceField(required=False,choices = PERIOD_CHOICES)	 
 	class Meta:
 		model = LeaveApplication
 		fields = [
@@ -510,6 +680,7 @@ class ApplyForForm2(forms.ModelForm):
 			'starttime',
 			'enddate',
 			'endtime',
+			'period',
 			'reason',
 			'file'
 		]
@@ -527,14 +698,16 @@ class ApplyForForm2(forms.ModelForm):
 			elif startdate.month < enddate.month:
 				print('22222222')
 				return endtime
+			elif startdate.year < enddate.year:
+					return endtime
 			elif startdate.month == enddate.month and startdate.day == enddate.day:
 				if starttime.minute  >=  endtime.minute and starttime.hour  >=  endtime.hour:
-					raise ValidationError("End date must be later than start date")
+					raise forms.ValidationError(("End Time must be later than start Time"))
 				elif starttime.hour  >  endtime.hour:
-					raise ValidationError("End date must be later than start date")
+					raise forms.ValidationError(("End Time must be later than start Time"))
 			else:
 				print('4444444444')
-				raise ValidationError("End date must be later than start date")
+				raise forms.ValidationError(("End date must be later than start date"))
 	
 		elif starttime == None and endtime == None:
 			if startdate.day <= enddate.day and startdate.month == enddate.month:
@@ -543,23 +716,27 @@ class ApplyForForm2(forms.ModelForm):
 			elif startdate.month < enddate.month:
 				print('666666666')
 				return endtime
+			elif startdate.year < enddate.year:
+					return endtime
 			else:
 				print('7777777')
-				raise ValidationError("End date must be later than start date")
+				raise forms.ValidationError(("End date must be later than start date"))
 		else:
-			raise ValidationError("End date must be later than start date")
+			raise forms.ValidationError(("End date must be later than start date"))
 
 
 class PickerForm(forms.ModelForm):
-	pickuser = forms.ModelMultipleChoiceField(label ="Applying for",queryset = User.objects.exclude(is_principal = True))
+	pickuser = forms.ModelMultipleChoiceField(label ="Applying for",queryset = User.objects.exclude(Q(is_principal = True ) | Q(is_secretary = True)),widget=forms.SelectMultiple(attrs={
+						"onChange":"showSelectedValues(this)"
+						})
+					)
 
-	# pickvp = forms.ModelMultipleChoiceField(label ="Applying for",queryset = User.objects.filter(is_viceprincipal = True))
 	class Meta:
 			model = Picker
 			fields = [
 				'pickuser'
 			]
-
+			
 class UpdateFileForm(forms.ModelForm):
 	# firststatus = forms.
 	class Meta:
@@ -621,7 +798,8 @@ class FinalValidate(forms.ModelForm):
 		]
 
 class IncrementAllForm(forms.ModelForm):
-	created_at = forms.DateField(label= 'Date Added',widget=DatePickerInput(
+	created_at = forms.DateField(input_formats=('%d/%m/%Y', ),label= 'Date Added',widget=DatePickerInput(
+		format='%d/%m/%Y',
 		options={
 				"toolbarPlacement" : 'top',
 				},
@@ -660,7 +838,7 @@ class CancelForm(forms.ModelForm):
 			'finalcomment',
 		]
 class UserCancelForm(forms.ModelForm):
-	reason = forms.CharField(required=False,label =  "Cancel reason", widget=forms.TextInput(attrs={'placeholder' : "Reason"}) )
+	reason = forms.CharField(required=True,label =  "Cancel reason", widget=forms.TextInput(attrs={'placeholder' : "Reason"}) )
 	class Meta:
 		model = LeaveApplication
 		fields = [

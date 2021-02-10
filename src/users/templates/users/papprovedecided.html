@@ -12,7 +12,7 @@
           <p class="text-secondary">email address : {{ obj.user.email }}</p>
 
           {% if obj.user.is_teacher %}
-            <p class="text-secondary">Teacher Applied For : {{ obj.teachertimeofftype }}</p>
+            <p class="text-secondary">Teacher Applied For : {{ obj.alltimeofftype }}</p>
             <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
             <p class="text-secondary">End Date : {{ obj.enddate }}</p>
             <p class="text-secondary">Applied Duration : {{ obj.duration }}</p>
@@ -29,7 +29,7 @@
 
               
           {% else %}
-            <p class="text-secondary">Non Teacher Applied For : {{ obj.nonteachertimeofftype }}</p>
+            <p class="text-secondary">Non Teacher Applied For : {{ obj.alltimeofftype }}</p>
             <p class="text-secondary">Start Date : {{ obj.startdate }}</p>
             <p class="text-secondary">End Date : {{ obj.enddate }}</p>
             <p class="text-secondary">Applied Duration : {{ obj.duration }}</p>
@@ -52,7 +52,10 @@
             {% endif %}
           {% endif %}
           
-          <p class="text-secondary">Applicant Reason : {{ obj.reason }}</p><br>
+          <p class="text-secondary">Applicant Reason : {{ obj.reason }}</p>
+          {% if obj.period != "[]" %}
+                    <p class="font-weight-bold"> Period : {{ obj.period}}</p>
+                    {% endif %}<br>
           <h4 class="account-heading">Supervisor Validation:</h4>          
           <p class="text-secondary">Supervisor Approval Status : {{ obj.firststatus }}</p>
           <p class="text-secondary">Supervisor comment : {{ obj.firstcomment }}</p><br>

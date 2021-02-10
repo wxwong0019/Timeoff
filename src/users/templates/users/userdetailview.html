@@ -22,20 +22,30 @@
 	{% if stuff.user.is_nonteacher %}
 		<tr class = 'table'>
 			<td> {{ stuff.created_at }}</td>
-			<td> {{ stuff.nonteachertimeofftype }}</td>
+			<td> {{ stuff.alltimeofftype }}</td>
 			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-			<td> {{ stuff.duration }}
+			
+
+			{% if stuff.finalduration == None %}
+            	<td> {{ stuff.duration }}</td>
+          	{% else %}
+            	<td> {{ stuff.finalduration }}</td>
+         	{% endif %}
 			<td> {{ stuff.firststatus }}</td>
 			<td> {{ stuff.secondstatus }}</td>
 			<td> {{ stuff.finalstatus }}</td>
-		</tr>
+		</tr> 
 	{% else %}
 		<tr class = 'table'>
 			<td> {{ stuff.created_at }}</td>
-			<td> {{ stuff.teachertimeofftype }}</td>
+			<td> {{ stuff.alltimeofftype }}</td>
 			<td> {{ stuff.startdate }} to {{ stuff.enddate }}</td>
-			<td> {{ stuff.duration }}
-			<td> {{ stuff.firststatus }}</td>
+			{% if stuff.finalduration == None %}
+            	<td> {{ stuff.duration }}</td>
+          	{% else %}
+            	<td> {{ stuff.finalduration }}</td>
+         	{% endif %}
+			<td> Not Applicable</td>
 			<td> {{ stuff.secondstatus }}</td>
 			<td> {{ stuff.finalstatus }}</td>
 		</tr>

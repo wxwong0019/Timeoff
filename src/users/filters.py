@@ -4,6 +4,7 @@ from django import forms
 from django_filters import *
 from django_filters.widgets import *
 from bootstrap_datepicker_plus import DatePickerInput, TimePickerInput, DateTimePickerInput, MonthPickerInput, YearPickerInput
+from datetime import *
 
 from customstaff.models import *
 
@@ -29,6 +30,13 @@ class nonteacherLeaveApplicationFilter(django_filters.FilterSet):
 
 class LeaveApplicationFilter(django_filters.FilterSet):
 	created_at = DateFilter(label= 'Date Created', lookup_expr='gte')
+	startdate = DateFilter(input_formats=('%d/%m/%Y'),label= 'Start Date', lookup_expr='gte', widget=MonthPickerInput(
+            format='%d/%m/%Y',
+            attrs={
+                'class': 'datepicker'
+            }
+        ))
+	
 
 	class Meta:
 		model = LeaveApplication
@@ -38,6 +46,7 @@ class LeaveApplicationFilter(django_filters.FilterSet):
 		'stafftype',
 		'user',
 		'created_at',
+		'startdate',
 		'attachmentreceived',
 		'attachmentrequired'
 		]
